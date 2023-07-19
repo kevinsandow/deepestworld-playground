@@ -28,6 +28,8 @@
             },
         )
 
+        const scale = 96 / 16
+
         L.tileLayer('tiles/{z}.{y}.{x}.bmp', {
             continuesWorld: false,
             noWrap: true,
@@ -35,8 +37,28 @@
             zoomDelta: 2,
             maxZoom: 0,
             zoomControl: false,
-            tileSize: 96,
+            tileSize: 16 * scale,
         }).addTo(map)
+
+        const popup = L.popup()
+
+        function onMapClick(e) {
+          console.log(e.latlng)
+          const l = map.getZoom()
+          const x = Math.floor(e.latlng.lng / scale)
+          const y = Math.floor(e.latlng.lat / scale)
+
+          const zoneLevel = 1
+            + Math.abs(l)
+            + Math.floor(Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) / 16)
+
+          popup
+            .setLatLng(e.latlng)
+            .setContent(`World Position: ${l},${x},${y}<br>Zone Level: ${zoneLevel}`)
+            .openOn(map)
+        }
+
+        map.on('click', onMapClick)
     </script>
 </body>
 </html>
