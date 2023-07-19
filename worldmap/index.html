@@ -1,64 +1,106 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <title>Deepest World Map</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <style>
-        html, body, #map { margin: 0; height: 100%; width: 100%; }
-        img {
-            image-rendering: pixelated;
-            image-rendering: -moz-crisp-edges;
-            image-rendering: crisp-edges;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <title>Deepest World Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <style>
+
+    html, body, #map {
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    body {
+      background: rgb(21, 21, 21);
+    }
+
+    img {
+      image-rendering: pixelated;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: crisp-edges;
+    }
+  </style>
 </head>
 <body>
-    <div id="map"></div>
-    <script>
-        const map = L.map(
-            'map',
-            {
-                crs: L.CRS.Simple,
-                center: [0, 0],
-                zoom: 0,
-            },
-        )
+<div id="map"></div>
+<script>
+  const map = L.map(
+    'map',
+    {
+      crs: L.CRS.Simple,
+      center: [0, 0],
+      zoom: 0,
+      minZoom: -Infinity,
+      maxZoom: 0,
+      zoomSnap: 2,
+      zoomDelta: 2
+    },
+  )
 
-        const scale = 96 / 16
+  const scale = 96 / 16
 
-        L.tileLayer('tiles/{z}.{y}.{x}.bmp', {
-            continuesWorld: false,
-            noWrap: true,
-            minZoom: 0,
-            zoomDelta: 2,
-            maxZoom: 0,
-            zoomControl: false,
-            tileSize: 16 * scale,
-        }).addTo(map)
+  L.tileLayer('tiles/{z}.{y}.{x}.bmp', {
+    attribution: '&copy; <a href="https://deepestworld.com">Deepest World</a>',
+    continuesWorld: false,
+    noWrap: true,
+    minZoom: -Infinity,
+    maxZoom: 0,
+    tileSize: 16 * scale,
+  }).addTo(map)
 
-        const popup = L.popup()
+  const ZoomViewer = L.Control.extend({
+    onAdd() {
+      const container = L.DomUtil.create('div')
+      const gauge = L.DomUtil.create('div')
+      container.style.background = 'rgba(21, 21, 21, 0.9)'
+      container.style.border = '1px solid rgb(60, 60, 60)'
+      container.style.color = 'rgb(255, 255, 255)'
+      container.style.fontFamily = 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"'
+      container.style.fontSize = '16px'
+      container.style.fontWeight = 400
+      container.style.padding = '2px 8px'
+      container.style.userSelect = 'none'
+      gauge.innerHTML = `World Layer: ${map.getZoom()}`
+      map.on('zoomstart zoom zoomend', (ev) => {
+        gauge.innerHTML = `World Layer: ${map.getZoom()}`
+      })
+      container.appendChild(gauge)
+      return container
+    }
+  });
 
-        function onMapClick(e) {
-          console.log(e.latlng)
-          const l = map.getZoom()
-          const x = Math.floor(e.latlng.lng / scale)
-          const y = Math.floor(e.latlng.lat / scale)
+  new ZoomViewer().addTo(map)
 
-          const zoneLevel = 1
-            + Math.abs(l)
-            + Math.floor(Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) / 16)
+  const popup = L.popup()
 
-          popup
-            .setLatLng(e.latlng)
-            .setContent(`World Position: ${l},${x},${y}<br>Zone Level: ${zoneLevel}`)
-            .openOn(map)
-        }
+  function onMapClick(e) {
+    const l = map.getZoom()
+    const x = Math.floor(e.latlng.lng / scale)
+    const y = Math.floor(-e.latlng.lat / scale)
 
-        map.on('click', onMapClick)
-    </script>
+    const zoneLevel = 1
+      + Math.abs(l)
+      + Math.floor(Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) / 16)
+
+    popup
+      .setLatLng(e.latlng)
+      .setContent(`World Position: ${l},${x},${y}<br>Zone Level: ${zoneLevel}`)
+      .openOn(map)
+  }
+
+  map.on('click', onMapClick)
+  map.on('zoomstart zoom zoomend', (ev) => {
+    popup.close()
+  })
+
+  map.setView([0, 0], 0)
+</script>
 </body>
 </html>
