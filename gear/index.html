@@ -25,20 +25,54 @@
       )
     }
 
-    delete dw.c.gear
-    delete dw.c.bag
-    delete dw.c.skillBag
-    delete dw.c.cardBag
-    delete dw.c.skills
+    function ItemTable({ items }) {
+      const modTypes = React.useMemo(() => [...items.reduce((set, item) => set.add(...Object.keys(item.mods || {})), new Set())].filter(Boolean).sort(), [items])
+
+      return (
+        <table style={{width: '100%'}}>
+          <thead>
+          <tr>
+            <th>MD</th>
+            {modTypes.map((modType) => <th key={modType}><span>{modType}</span></th>)}
+          </tr>
+          </thead>
+          <tbody>
+          {allItems.map((item, idx) => (
+            <tr key={idx}>
+              <td>{item.md}</td>
+              {modTypes.map((modType) => <td key={modType}>{item.mods[modType] && item.mods[modType] * item.qual}</td>)}
+            </tr>
+          ))}
+          </tbody>
+        </table>
+      )
+    }
 
     function App() {
-      const players = React.useMemo(() => dw.entities.filter(e => e.player), [])
+      // const players = React.useMemo(() => dw.entities.filter(e => e.player), [])
+      const allItems = React.useMemo(() => dw.entities.flatMap((e) => e.storage || []).filter(Boolean).filter((item) => Object.keys(item.mods || {}).length > 0).sort((a, b) => a.md.localeCompare(b.md)), [])
+
+      console.table(allItems)
 
       return (
         <div>
           <h1>Gear Optimizer</h1>
           <h2>{dw.c.name} - Level {dw.c.level}</h2>
-          <pre>{JSON.stringify(dw.c, null, 2)}</pre>
+          <h3>Gear</h3>
+          <ul>
+            {Object.entries(dw.c.gear).map(([slot, item]) => (
+              <li key={slot}>
+                <b>{slot}</b>
+                <ul>
+                  {Object.entries(item.mods).map(([type, value]) => (
+                    <li key={type}>{value*item.qual} {type}</li>
+                  ))}
+                </ul>
+                <div>{JSON.stringify(item, null, 2)}</div>
+                
+              </li>
+            ))}
+          </ul>
         </div>
       )
     }
@@ -46,6 +80,20 @@
     const root = ReactDOM.createRoot(document.querySelector('#root'));
     root.render(<App/>);
   </script>
+  <style>
+    th {
+      vertical-align: bottom;
+      text-align: center;
+    }
+
+    th span {
+      -ms-writing-mode: tb-rl;
+      -webkit-writing-mode: vertical-rl;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      white-space: nowrap;
+    }
+  </style>
 </head>
 <body>
 <div id="root"></div>
