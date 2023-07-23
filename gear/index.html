@@ -33,14 +33,14 @@
           <thead>
           <tr>
             <th>MD</th>
-            {modTypes.map((modType) => <th key={modType}><span>{modType}</span></th>)}
+            {modTypes.map((modType) => <th key={modType}>{modType}</th>)}
           </tr>
           </thead>
           <tbody>
-          {allItems.map((item, idx) => (
+          {items.map((item, idx) => (
             <tr key={idx}>
               <td>{item.md}</td>
-              {modTypes.map((modType) => <td key={modType}>{item.mods[modType] && item.mods[modType] * item.qual}</td>)}
+              {modTypes.map((modType) => <td style={{ textAlign: 'center' }} key={modType}>{item.mods[modType] && item.mods[modType] * item.qual}</td>)}
             </tr>
           ))}
           </tbody>
@@ -50,9 +50,14 @@
 
     function App() {
       // const players = React.useMemo(() => dw.entities.filter(e => e.player), [])
-      const allItems = React.useMemo(() => dw.entities.flatMap((e) => e.storage || []).filter(Boolean).filter((item) => Object.keys(item.mods || {}).length > 0).sort((a, b) => a.md.localeCompare(b.md)), [])
-
-      console.table(allItems)
+      const allItems = React.useMemo(
+        () => dw.entities
+          .flatMap((e) => e.storage || [])
+          .filter(Boolean)
+          .filter((item) => Object.keys(item.mods || {}).length > 0)
+          .sort((a, b) => a.md.localeCompare(b.md)),
+        [],
+      )
 
       return (
         <div>
@@ -69,7 +74,7 @@
                   ))}
                 </ul>
                 <div>{JSON.stringify(item, null, 2)}</div>
-                
+                <ItemTable items={allItems.filter((i) => item.md === i.md)} />
               </li>
             ))}
           </ul>
