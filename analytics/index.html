@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <title>Korbinian</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js" crossorigin></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tanstack/react-query@4.32.0/build/umd/index.development.js" crossorigin></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.4.0/dist/axios.min.js" crossorigin></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.22.9/babel.min.js" crossorigin></script>
+  <script type="text/babel">
+    const analyticsID = 'Korbinian_376_DWAnalyticsID'
+
+    const globalQueryClient = new ReactQuery.QueryClient()
+
+    const timeUnits = ['s', 'm', 'h', 'd']
+    const timeFactors = [1, 60, 60, 24]
+
+    function getTimeAgo(d) {
+      let t =  Date.now() - new Date(d.endsWith('Z') ? d : d + 'Z')
+      t = Math.floor(t / 1000)
+      let unit = timeUnits[0]
+      for (let i = 1; i < timeUnits.length; i++) {
+        if (t < timeFactors[i] * 2) {
+          break
+        }
+
+        t = Math.floor(t / timeFactors[i])
+        unit = timeUnits[i]
+      }
+
+      return `${t}${unit} ago`
+    }
+
+    function EventCard({ event }) {
+      switch (event.type) {
+        case 'update':
+          return (
+            <li>
+              <span>🔄</span>
+              <div>
+                <div>
+                  updated
+                  {' '}
+                  {getTimeAgo(event.when)}
+                </div>
+              </div>
+            </li>
+          )
+        case 'death':
+          return (
+            <li>
+              <span>💀</span>
+              <div>
+                <div>
+                  was killed by
+                  {' '}
+                  <b>{event.levelOfMurderer}{'💀'.repeat(event.rankOfMurderer ?? 0)} {event.nameOfMurderer}</b>
+                  {' '}
+                  {getTimeAgo(event.when)}
+                </div>
+              </div>
+            </li>
+          )
+        case 'levelUp':
+          return (
+            <li>
+              <span>✨</span>
+              <div>
+                <div>
+                  reached level
+                  {' '}
+                  <b>{event.characterLevel}</b>
+                  {' '}
+                  {getTimeAgo(event.when)}
+                </div>
+              </div>
+            </li>
+          )
+        case 'loot':
+          return (
+            <li>
+              <span>💰</span>
+              <div>
+                <div>
+                  looted
+                  {' '}
+                  <b>{event.itemLevel} {event.itemType}{/*event.itemRarity > 0 ? ` (${event.itemRarity})` : ''*/}</b>
+                  {' '}
+                  {getTimeAgo(event.when)}
+                </div>
+                {event.description !== 'loot' && <pre>{JSON.stringify(JSON.parse(event.description), null, 2)}</pre>}
+              </div>
+            </li>
+          )
+        case 'kill':
+          return (
+            <li>
+              <span>️⚔️</span>
+              <div>
+                <div>
+                  killed
+                  {' '}
+                  <b>{event.monsterLevel}{'💀'.repeat(event.monsterRank ?? 0)} {event.monsterName}</b>
+                  {' '}
+                  {getTimeAgo(event.when)}
+                </div>
+              </div>
+            </li>
+          )
+        default:
+          return (
+            <li>
+              <span>❓</span>
+              <div>
+                <div>
+                  <b>Unknown event</b>
+                  {' '}
+                  {getTimeAgo(event.when)}
+                </div>
+              </div>
+            </li>
+          )
+      }
+    }
+
+    function Character() {
+      const queryClient = ReactQuery.useQueryClient()
+
+      const character = ReactQuery.useQuery({
+        queryKey: ['character'],
+        queryFn: () => axios
+          .get(`https://www.deepestworldex.com/api/Characters/ByDWId/${analyticsID}`)
+          .then((res) => res.data),
+      })
+
+      const deaths = ReactQuery.useQuery({
+        queryKey: ['deaths'],
+        queryFn: () => axios
+          .get(`https://www.deepestworldex.com/api/CharacterDeaths/ForCharacter/${character.data.id}`)
+          .then((res) => res.data),
+        enabled: character?.data?.id !== undefined,
+      })
+
+      const levelUps = ReactQuery.useQuery({
+        queryKey: ['levelUps'],
+        queryFn: () => axios
+          .get(`https://www.deepestworldex.com/api/CharacterLevelUps/ForCharacter/${character.data.id}`)
+          .then((res) => res.data),
+        enabled: character?.data?.id !== undefined,
+      })
+
+      const loot = ReactQuery.useQuery({
+        queryKey: ['loot'],
+        queryFn: () => axios
+          .get(`https://www.deepestworldex.com/api/CharacterLootEvents/ForCharacter/${character.data.id}`)
+          .then((res) => res.data),
+        enabled: character?.data?.id !== undefined,
+      })
+
+      const kills = ReactQuery.useQuery({
+        queryKey: ['kills'],
+        queryFn: () => axios
+          .get(`https://www.deepestworldex.com/api/MonsterKills/ForCharacter/${character.data.id}`)
+          .then((res) => res.data),
+        enabled: character?.data?.id !== undefined,
+      })
+
+      const events = React.useMemo(() => {
+        const results = [
+          ...(deaths.data ?? []).map((x) => ({...x, type:'death'})).slice(-5),
+          ...(levelUps.data ?? []).map((x) => ({...x, type:'levelUp'})).slice(-5),
+          ...(loot.data ?? []).map((x) => ({...x, type:'loot'})).slice(-5),
+          ...(kills.data ?? []).map((x) => ({...x, type:'kill'})).slice(-5),
+        ]
+
+        if (character?.data?.lastUpdate) {
+          results.push({ id: -1, type: 'update', when: character?.data?.lastUpdate })
+        }
+
+        return results.sort((b, a) => a.when.localeCompare(b.when))
+      }, [character.data, deaths.data, levelUps.data, loot.data, kills.data])
+
+      React.useEffect(() => {
+        const intervalId = setInterval(() => {
+          queryClient.invalidateQueries()
+        }, 5000)
+
+        return () => {
+          clearInterval(intervalId)
+        }
+      }, [queryClient])
+
+      if (character.isLoading || character.isError) {
+        return null
+      }
+
+      return (
+        <div>
+          <h1>{character.data.name}</h1>
+          <ol>
+            {events.map((event) => <EventCard key={`${event.type}-${event.id}`} event={event} /> )}
+          </ol>
+        </div>
+      )
+    }
+
+    function App() {
+      return (
+        <ReactQuery.QueryClientProvider client={globalQueryClient}>
+          <Character />
+        </ReactQuery.QueryClientProvider>
+      )
+    }
+
+    const root = ReactDOM.createRoot(document.querySelector('#root'))
+    root.render(<App/>)
+  </script>
+  <style>
+    body, html {
+      margin: 0;
+      font-family: Outfit, sans-serif;
+    }
+    h1 {
+      text-align: center;
+      color: #3d3d3d;
+    }
+    ol {
+      list-style: none;
+      width: 85%;
+      display: flex;
+      margin: 0 auto;
+      flex-direction: column;
+      padding: 32px 0 32px 32px;
+      border-left: 2px solid #e3e3e3;
+      gap: 16px;
+    }
+    li {
+      display: flex;
+      gap: 24px;
+      border: 1px solid #e3e3e3;
+    }
+    li > span {
+      background-color: #f4f6f8;
+      color: #7b7b7b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-left: -52px;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    li > div {
+      display: flex;
+      flex-direction: column;
+      padding-top: 8px;
+      gap: 8px;
+      color: #7b7b7b;
+      line-height: 1.5;
+    }
+    pre {
+      margin-top: 0;
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+</body>
+</html>
