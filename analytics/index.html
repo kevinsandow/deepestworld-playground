@@ -11,7 +11,12 @@
   <script src="https://cdn.jsdelivr.net/npm/axios@1.4.0/dist/axios.min.js" crossorigin></script>
   <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.22.9/babel.min.js" crossorigin></script>
   <script type="text/babel">
-    const analyticsID = 'Korbinian_376_DWAnalyticsID'
+    const analyticsIDs = [
+      'Korbinian_376_DWAnalyticsID',
+      'Abbott_171_DWAnalyticsID',
+      'Urza_169_DWAnalyticsID',
+      'Bataar_170_DWAnalyticsID',
+    ]
 
     const globalQueryClient = new ReactQuery.QueryClient()
 
@@ -127,17 +132,19 @@
     }
 
     function Character() {
+      const [analyticsID, setAnalyticsID] = React.useState(analyticsIDs[0])
+
       const queryClient = ReactQuery.useQueryClient()
 
       const character = ReactQuery.useQuery({
-        queryKey: ['character'],
+        queryKey: ['character', analyticsID],
         queryFn: () => axios
           .get(`https://www.deepestworldex.com/api/Characters/ByDWId/${analyticsID}`)
           .then((res) => res.data),
       })
 
       const deaths = ReactQuery.useQuery({
-        queryKey: ['deaths'],
+        queryKey: ['deaths', analyticsID],
         queryFn: () => axios
           .get(`https://www.deepestworldex.com/api/CharacterDeaths/ForCharacter/${character.data.id}`)
           .then((res) => res.data),
@@ -145,7 +152,7 @@
       })
 
       const levelUps = ReactQuery.useQuery({
-        queryKey: ['levelUps'],
+        queryKey: ['levelUps', analyticsID],
         queryFn: () => axios
           .get(`https://www.deepestworldex.com/api/CharacterLevelUps/ForCharacter/${character.data.id}`)
           .then((res) => res.data),
@@ -153,7 +160,7 @@
       })
 
       const loot = ReactQuery.useQuery({
-        queryKey: ['loot'],
+        queryKey: ['loot', analyticsID],
         queryFn: () => axios
           .get(`https://www.deepestworldex.com/api/CharacterLootEvents/ForCharacter/${character.data.id}`)
           .then((res) => res.data),
@@ -161,7 +168,7 @@
       })
 
       const kills = ReactQuery.useQuery({
-        queryKey: ['kills'],
+        queryKey: ['kills', analyticsID],
         queryFn: () => axios
           .get(`https://www.deepestworldex.com/api/MonsterKills/ForCharacter/${character.data.id}`)
           .then((res) => res.data),
@@ -170,7 +177,7 @@
 
       const [deathId, setDeathId] = React.useState(undefined)
       const death = ReactQuery.useQuery({
-        queryKey: ['death'],
+        queryKey: ['death', analyticsID, deathId],
         queryFn: () => axios
           .get(`https://www.deepestworldex.com/api/CombatLog/DeathRecap?characterId=${character.data.id}&deathId=${deathId}`)
           .then((res) => res.data),
@@ -179,7 +186,7 @@
 
       const [killId, setKillId] = React.useState(undefined)
       const kill = ReactQuery.useQuery({
-        queryKey: ['kill'],
+        queryKey: ['kill', analyticsID, killId],
         queryFn: () => axios
           .get(`https://www.deepestworldex.com/api/CombatLog/KillRecap?characterId=${character.data.id}&killId=${killId}`)
           .then((res) => res.data),
@@ -217,6 +224,13 @@
 
       return (
         <div>
+          <div style={{textAlign: 'center',padding: '1em'}}>
+            <select onChange={(e) => setAnalyticsID(e.currentTarget.value)}>
+              {analyticsIDs.map((id) => (
+                <option key={id} value={id}>{id}</option>
+              ))}
+            </select>
+          </div>
           <h1>{character.data.name}</h1>
           <dialog open={killId !== undefined}>
             <form method="dialog" onSubmit={() => setKillId(undefined)}>
@@ -240,6 +254,9 @@
             <form method="dialog" onSubmit={() => setDeathId(undefined)}>
               <button>Close</button>
               <br/><br/>
+              <pre>
+                {JSON.stringify(death?.data, null, 2)}
+              </pre>
               <ol>
                 {death.isLoading && '⏳'}
                 {!death.isLoading && death?.data?.map((hit) => (
@@ -326,6 +343,30 @@
     }
     pre {
       margin-top: 0;
+    }
+    select {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      border: 0;
+      outline: 0;
+      font: inherit;
+      width: 20em;
+      height: 3em;
+      padding: 0 1em;
+      border-radius: 0.25em;
+      box-shadow: 0 0 1em 0 rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+    }
+    select option {
+      color: inherit;
+      background-color: #320a28;
+    }
+    select:focus {
+      outline: none;
+    }
+    select::-ms-expand {
+      display: none;
     }
   </style>
 </head>
