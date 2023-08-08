@@ -34,7 +34,7 @@
       return `${t}${unit} ago`
     }
 
-    function EventCard({ event }) {
+    function EventCard({ event, setDeathId, setKillId }) {
       switch (event.type) {
         case 'update':
           return (
@@ -51,7 +51,7 @@
           )
         case 'death':
           return (
-            <li>
+            <li onClick={() => setDeathId(event.id)} className='bad'>
               <span>💀</span>
               <div>
                 <div>
@@ -97,7 +97,7 @@
           )
         case 'kill':
           return (
-            <li>
+            <li onClick={() => setKillId(event.id)} className='good'>
               <span>️⚔️</span>
               <div>
                 <div>
@@ -168,12 +168,30 @@
         enabled: character?.data?.id !== undefined,
       })
 
+      const [deathId, setDeathId] = React.useState(undefined)
+      const death = ReactQuery.useQuery({
+        queryKey: ['death'],
+        queryFn: () => axios
+          .get(`https://www.deepestworldex.com/api/CombatLog/DeathRecap?characterId=${character.data.id}&deathId=${deathId}`)
+          .then((res) => res.data),
+        enabled: character?.data?.id !== undefined && deathId !== undefined,
+      })
+
+      const [killId, setKillId] = React.useState(undefined)
+      const kill = ReactQuery.useQuery({
+        queryKey: ['kill'],
+        queryFn: () => axios
+          .get(`https://www.deepestworldex.com/api/CombatLog/KillRecap?characterId=${character.data.id}&killId=${killId}`)
+          .then((res) => res.data),
+        enabled: character?.data?.id !== undefined && killId !== undefined,
+      })
+
       const events = React.useMemo(() => {
         const results = [
-          ...(deaths.data ?? []).map((x) => ({...x, type:'death'})).slice(-5),
-          ...(levelUps.data ?? []).map((x) => ({...x, type:'levelUp'})).slice(-5),
-          ...(loot.data ?? []).map((x) => ({...x, type:'loot'})).slice(-5),
-          ...(kills.data ?? []).map((x) => ({...x, type:'kill'})).slice(-5),
+          ...(deaths.data ?? []).map((x) => ({...x, type:'death'})),
+          ...(levelUps.data ?? []).map((x) => ({...x, type:'levelUp'})),
+          ...(loot.data ?? []).map((x) => ({...x, type:'loot'})),
+          ...(kills.data ?? []).map((x) => ({...x, type:'kill'})),
         ]
 
         if (character?.data?.lastUpdate) {
@@ -200,8 +218,45 @@
       return (
         <div>
           <h1>{character.data.name}</h1>
+          <dialog open={killId !== undefined}>
+            <form method="dialog" onSubmit={() => setKillId(undefined)}>
+              <button>Close</button>
+              <br/><br/>
+              <ol>
+                {kill.isLoading ? '⏳' : kill?.data?.map((hit) => (
+                  <li key={hit.id} className={hit.isCharacterHit ? 'good' : 'bad'}>
+                    <span>{hit.isCharacterHit ? '➡️' : '⬅️'}</span>
+                    <div>
+                      <div>{hit.description}</div>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+              <br/>
+              <button>Close</button>
+            </form>
+          </dialog>
+          <dialog open={deathId !== undefined}>
+            <form method="dialog" onSubmit={() => setDeathId(undefined)}>
+              <button>Close</button>
+              <br/><br/>
+              <ol>
+                {death.isLoading && '⏳'}
+                {!death.isLoading && death?.data?.map((hit) => (
+                  <li key={hit.id} className={hit.isCharacterHit ? 'good' : 'bad'}>
+                    <span>{hit.isCharacterHit ? '➡️' : '⬅️'}</span>
+                    <div>
+                      <div>{hit.description}</div>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+              <br/>
+              <button>Close</button>
+            </form>
+          </dialog>
           <ol>
-            {events.map((event) => <EventCard key={`${event.type}-${event.id}`} event={event} /> )}
+            {events.map((event) => <EventCard key={`${event.type}-${event.id}`} event={event} setDeathId={setDeathId} setKillId={setKillId} /> )}
           </ol>
         </div>
       )
@@ -262,6 +317,12 @@
       gap: 8px;
       color: #7b7b7b;
       line-height: 1.5;
+    }
+    li.good {
+      box-shadow: 0 0 4px inset greenyellow;
+    }
+    li.bad {
+      box-shadow: 0 0 4px inset red;
     }
     pre {
       margin-top: 0;
