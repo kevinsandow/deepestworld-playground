@@ -281,49 +281,34 @@
       }
 
       return (
-        <>
-          <table border={1} width='100%'>
-            <thead>
-            <tr>
-              <th>&nbsp;</th>
+        <table>
+          <thead>
+          <tr>
+            <th>&nbsp;</th>
+            {combatants.map((id) => (
+              <th key={id}>
+                #{id}<br/>
+                <br/>
+                {combatantsInfo.get(id)?.level}{'💀'.repeat(combatantsInfo.get(id)?.rarity ?? 0)}<br/>
+                {combatantsInfo.get(id)?.name}<br/>
+                ❤️ {combatantsInfo.get(id)?.hpMax}
+              </th>
+            ))}
+          </tr>
+          </thead>
+          <tbody>
+          {logs.map((log) => (
+            <tr key={log.id}>
+              <th>{log.when}</th>
               {combatants.map((id) => (
-                <th key={id}>
-                  #{id}<br/>
-                  <br/>
-                  {combatantsInfo.get(id)?.level}{'💀'.repeat(combatantsInfo.get(id)?.rarity ?? 0)}<br/>
-                  {combatantsInfo.get(id)?.name}<br/>
-                  ❤️ {combatantsInfo.get(id)?.hpMax}
-                </th>
+                <td key={id}>
+                  {log.combatants[id]}
+                </td>
               ))}
             </tr>
-            </thead>
-            <tbody>
-            {logs.map((log) => (
-              <tr key={log.id}>
-                <th>{log.when}</th>
-                {combatants.map((id) => (
-                  <td key={id}>
-                    {log.combatants[id]}
-                  </td>
-                ))}
-              </tr>
-            ))}
-            </tbody>
-          </table>
-          <ol>
-            {hits?.map((hit) => (
-              <li key={hit.id} className={hit.isCharacterHit ? 'good' : 'bad'}>
-                <span>{hit.isCharacterHit ? '➡️' : '⬅️'}</span>
-                <div>
-                  <div>{hit.description}</div>
-                </div>
-              </li>
-            ))}
-          </ol>
-          <pre>
-            {JSON.stringify(hits, null, 2)}
-          </pre>
-        </>
+          ))}
+          </tbody>
+        </table>
       )
     }
 
@@ -474,10 +459,10 @@
       const analyticsIDs = [
         // 'Korbinian_376_DWAnalyticsID',
         // 'Abbott_171_DWAnalyticsID',
-        // 'Urza_169_DWAnalyticsID',
+        'Urza_6_DWAnalyticsID',
         // 'Bataar_170_DWAnalyticsID',
         'Sweeper_2_DWAnalyticsID',
-        // 'Diakon_166_DWAnalyticsID',
+        'Diakon_7_DWAnalyticsID',
       ]
 
       const [analyticsID, setAnalyticsID] = React.useState(analyticsIDs[0])
@@ -565,6 +550,30 @@
 
     pre {
       margin-top: 0;
+    }
+
+    dialog {
+      min-width: 75%;
+    }
+
+    table {
+      border: 1px solid #7b7b7b;
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th, td {
+      padding: 8px;
+      text-align: left;
+      border: 1px solid #7b7b7b;
+    }
+
+    thead {
+      border-bottom: 1px solid #7b7b7b;
+    }
+
+    tbody > tr:nth-of-type(2n+1) {
+      background-color: #f4f6f8;
     }
   </style>
 </head>
