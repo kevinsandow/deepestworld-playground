@@ -7,26 +7,18 @@
   <title>Korbinian</title>
   <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js" crossorigin></script>
   <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js" crossorigin></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tanstack/react-query@4.32.0/build/umd/index.development.js" crossorigin></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tanstack/react-query@4.32.0/build/umd/index.development.js"
+          crossorigin></script>
   <script src="https://cdn.jsdelivr.net/npm/axios@1.4.0/dist/axios.min.js" crossorigin></script>
   <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.22.9/babel.min.js" crossorigin></script>
   <script type="text/babel">
-    const analyticsIDs = [
-      'Korbinian_376_DWAnalyticsID',
-      'Abbott_171_DWAnalyticsID',
-      'Urza_169_DWAnalyticsID',
-      'Bataar_170_DWAnalyticsID',
-      'Sweeper_544_DWAnalyticsID',
-      'Diakon_540_DWAnalyticsID',
-    ]
-
     const globalQueryClient = new ReactQuery.QueryClient()
 
     const timeUnits = ['s', 'm', 'h', 'd']
     const timeFactors = [1, 60, 60, 24]
 
     function getTimeAgo(d) {
-      let t =  Date.now() - new Date(d.endsWith('Z') ? d : d + 'Z')
+      let t = Date.now() - new Date(d.endsWith('Z') ? d : d + 'Z')
       t = Math.floor(t / 1000)
       let unit = timeUnits[0]
       for (let i = 1; i < timeUnits.length; i++) {
@@ -39,6 +31,22 @@
       }
 
       return `${t}${unit} ago`
+    }
+
+    function getTimeAfter(d, start) {
+      let t = new Date(d.endsWith('Z') ? d : d + 'Z') - start
+      t = Math.floor(t / 1000)
+      let unit = timeUnits[0]
+      for (let i = 1; i < timeUnits.length; i++) {
+        if (t < timeFactors[i] * 2) {
+          break
+        }
+
+        t = Math.floor(t / timeFactors[i])
+        unit = timeUnits[i]
+      }
+
+      return `+${t}${unit}`
     }
 
     function EventCard({ event, setDeathId, setKillId }) {
@@ -133,92 +141,257 @@
       }
     }
 
-    function Character() {
-      const [analyticsID, setAnalyticsID] = React.useState(analyticsIDs[0])
-
-      const queryClient = ReactQuery.useQueryClient()
-
-      const character = ReactQuery.useQuery({
+    function useCharacterQuery(analyticsID) {
+      return ReactQuery.useQuery({
         queryKey: ['character', analyticsID],
         queryFn: () => axios
           .get(`https://www.deepestworldex.com/api/Characters/ByDWId/${analyticsID}`)
           .then((res) => res.data),
       })
+    }
 
-      const deaths = ReactQuery.useQuery({
-        queryKey: ['deaths', analyticsID],
+    function useDeathsQuery(id) {
+      return ReactQuery.useQuery({
+        queryKey: ['deaths', id],
         queryFn: () => axios
-          .get(`https://www.deepestworldex.com/api/CharacterDeaths/ForCharacter/${character.data.id}`)
+          .get(`https://www.deepestworldex.com/api/CharacterDeaths/ForCharacter/${id}`)
           .then((res) => res.data),
-        enabled: character?.data?.id !== undefined,
+        enabled: id !== undefined,
       })
+    }
 
-      const levelUps = ReactQuery.useQuery({
-        queryKey: ['levelUps', analyticsID],
+    function useLevelUpsQuery(id) {
+      return ReactQuery.useQuery({
+        queryKey: ['levelUps', id],
         queryFn: () => axios
-          .get(`https://www.deepestworldex.com/api/CharacterLevelUps/ForCharacter/${character.data.id}`)
+          .get(`https://www.deepestworldex.com/api/CharacterLevelUps/ForCharacter/${id}`)
           .then((res) => res.data),
-        enabled: character?.data?.id !== undefined,
+        enabled: id !== undefined,
       })
+    }
 
-      const loot = ReactQuery.useQuery({
-        queryKey: ['loot', analyticsID],
+    function useLootQuery(id) {
+      return ReactQuery.useQuery({
+        queryKey: ['loot', id],
         queryFn: () => axios
-          .get(`https://www.deepestworldex.com/api/CharacterLootEvents/ForCharacter/${character.data.id}`)
+          .get(`https://www.deepestworldex.com/api/CharacterLootEvents/ForCharacter/${id}`)
           .then((res) => res.data),
-        enabled: character?.data?.id !== undefined,
+        enabled: id !== undefined,
       })
+    }
 
-      const kills = ReactQuery.useQuery({
-        queryKey: ['kills', analyticsID],
+    function useKillsQuery(id) {
+      return ReactQuery.useQuery({
+        queryKey: ['kills', id],
         queryFn: () => axios
-          .get(`https://www.deepestworldex.com/api/MonsterKills/ForCharacter/${character.data.id}`)
+          .get(`https://www.deepestworldex.com/api/MonsterKills/ForCharacter/${id}`)
           .then((res) => res.data),
-        enabled: character?.data?.id !== undefined,
+        enabled: id !== undefined,
       })
+    }
 
-      const [deathId, setDeathId] = React.useState(undefined)
-      const death = ReactQuery.useQuery({
-        queryKey: ['death', analyticsID, deathId],
+    function useDeathRecapQuery(id, deathId) {
+      return ReactQuery.useQuery({
+        queryKey: ['death', id, deathId],
         queryFn: () => axios
-          .get(`https://www.deepestworldex.com/api/CombatLog/DeathRecap?characterId=${character.data.id}&deathId=${deathId}`)
+          .get(`https://www.deepestworldex.com/api/CombatLog/DeathRecap?characterId=${id}&deathId=${deathId}`)
           .then((res) => res.data),
-        enabled: character?.data?.id !== undefined && deathId !== undefined,
+        enabled: id !== undefined && deathId !== undefined,
       })
+    }
 
-      const [killId, setKillId] = React.useState(undefined)
-      const kill = ReactQuery.useQuery({
-        queryKey: ['kill', analyticsID, killId],
+    function useKillRecapQuery(id, killId) {
+      return ReactQuery.useQuery({
+        queryKey: ['kill', id, killId],
         queryFn: () => axios
-          .get(`https://www.deepestworldex.com/api/CombatLog/KillRecap?characterId=${character.data.id}&killId=${killId}`)
+          .get(`https://www.deepestworldex.com/api/CombatLog/KillRecap?characterId=${id}&killId=${killId}`)
           .then((res) => res.data),
-        enabled: character?.data?.id !== undefined && killId !== undefined,
+        enabled: id !== undefined && killId !== undefined,
       })
+    }
 
-      const events = React.useMemo(() => {
-        const results = [
-          ...(deaths.data ?? []).map((x) => ({...x, type:'death'})),
-          ...(levelUps.data ?? []).map((x) => ({...x, type:'levelUp'})),
-          ...(loot.data ?? []).map((x) => ({...x, type:'loot'})),
-          ...(kills.data ?? []).map((x) => ({...x, type:'kill'})),
-        ]
-
-        if (character?.data?.lastUpdate) {
-          results.push({ id: -1, type: 'update', when: character?.data?.lastUpdate })
-        }
-
-        return results.sort((b, a) => a.when.localeCompare(b.when))
-      }, [character.data, deaths.data, levelUps.data, loot.data, kills.data])
+    function useQueryInvalidationEffect(interval) {
+      const queryClient = ReactQuery.useQueryClient()
 
       React.useEffect(() => {
         const intervalId = setInterval(() => {
           queryClient.invalidateQueries()
-        }, 5000)
+        }, interval)
 
         return () => {
           clearInterval(intervalId)
         }
       }, [queryClient])
+    }
+
+    function CombatLog({ isLoading, hits }) {
+      const combatants = React.useMemo(() => [
+        ...(hits ?? []).reduce((set, hit) => set.add(hit.characterId), new Set()),
+        ...(hits ?? []).reduce((set, hit) => set.add(hit.monsterID), new Set()),
+      ], [hits])
+
+      const combatantsInfo = React.useMemo(() => {
+        const info = new Map()
+
+        hits?.forEach((hit) => {
+          info.set(hit.characterId, {
+            name: 'character',
+            hpMax: hit.characterHPMax,
+          })
+
+          info.set(hit.monsterID, {
+            name: hit.monsterName,
+            level: hit.monsterLevel,
+            rarity: hit.monsterRarity,
+            hpMax: hit.monsterHPMax,
+          })
+        })
+
+        return info
+      }, [hits])
+
+      const logs = React.useMemo(() => {
+        if ((hits?.length ?? 0) === 0) {
+          return []
+        }
+
+        const entries = [...hits].reverse()
+        const firstHit = entries[0].when
+        const combatStart = new Date(firstHit.endsWith('Z') ? firstHit : firstHit + 'Z')
+
+        return entries.map((entry) => {
+          const attacker = entry.isCharacterHit ? entry.characterId : entry.monsterID
+          const attackerHP = entry.isCharacterHit ? entry.characterHP : entry.monsterHP
+          const target = entry.isCharacterHit ? entry.monsterID : entry.characterId
+          const targetHP = Math.max(0, (entry.isCharacterHit ? entry.monsterHP : entry.characterHP) - entry.damage)
+
+          return {
+            id: entry.id,
+            when: getTimeAfter(entry.when, combatStart),
+            combatants: {
+              [attacker]: entry.skillUsed,
+              [target]: `❤️ ${targetHP} (${-entry.damage})`,
+            }
+          }
+        })
+      }, [combatants, hits])
+
+      if (isLoading) {
+        return <div>⏳</div>
+      }
+
+      return (
+        <>
+          <table border={1} width='100%'>
+            <thead>
+            <tr>
+              <th>&nbsp;</th>
+              {combatants.map((id) => (
+                <th key={id}>
+                  #{id}<br/>
+                  <br/>
+                  {combatantsInfo.get(id)?.level}{'💀'.repeat(combatantsInfo.get(id)?.rarity ?? 0)}<br/>
+                  {combatantsInfo.get(id)?.name}<br/>
+                  ❤️ {combatantsInfo.get(id)?.hpMax}
+                </th>
+              ))}
+            </tr>
+            </thead>
+            <tbody>
+            {logs.map((log) => (
+              <tr key={log.id}>
+                <th>{log.when}</th>
+                {combatants.map((id) => (
+                  <td key={id}>
+                    {log.combatants[id]}
+                  </td>
+                ))}
+              </tr>
+            ))}
+            </tbody>
+          </table>
+          <ol>
+            {hits?.map((hit) => (
+              <li key={hit.id} className={hit.isCharacterHit ? 'good' : 'bad'}>
+                <span>{hit.isCharacterHit ? '➡️' : '⬅️'}</span>
+                <div>
+                  <div>{hit.description}</div>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <pre>
+            {JSON.stringify(hits, null, 2)}
+          </pre>
+        </>
+      )
+    }
+
+    function Character({ analyticsID }) {
+      const character = useCharacterQuery(analyticsID)
+
+      const deaths = useDeathsQuery(character?.data?.id)
+
+      const levelUps = useLevelUpsQuery(character?.data?.id)
+
+      const loot = useLootQuery(character?.data?.id)
+
+      const kills = useKillsQuery(character?.data?.id)
+
+      const [deathId, setDeathId] = React.useState(undefined)
+      const death = useDeathRecapQuery(character?.data?.id, deathId)
+
+      const [killId, setKillId] = React.useState(undefined)
+      const kill = useKillRecapQuery(character?.data?.id, killId)
+
+      const events = React.useMemo(() => {
+        const results = [
+          ...(deaths.data ?? []).map((x) => ({ ...x, type: 'death' })),
+          ...(levelUps.data ?? []).map((x) => ({ ...x, type: 'levelUp' })),
+          ...(loot.data ?? []).map((x) => ({ ...x, type: 'loot' })),
+          ...(kills.data ?? []).map((x) => ({ ...x, type: 'kill' })),
+        ]
+
+        // if (character?.data?.lastUpdate) {
+        //   results.push({ id: -1, type: 'update', when: character?.data?.lastUpdate })
+        // }
+
+        return results.sort((b, a) => a.when.localeCompare(b.when))
+      }, [character.data, deaths.data, levelUps.data, loot.data, kills.data])
+
+      const min = React.useMemo(
+        () => {
+          const data = (kills.data ?? [])
+          if (data.length === 0) {
+            return '?'
+          }
+
+          return Math.floor(
+            data
+              .map((kill) => kill.monsterLevel)
+              .reduce((a, b) => a + b)
+            / data.length
+          )
+        },
+        [kills]
+      )
+
+      const max = React.useMemo(
+        () => {
+          const data = (deaths.data ?? [])
+          if (data.length === 0) {
+            return '?'
+          }
+
+          return Math.floor(
+            data
+              .map((death) => death.levelOfMurderer)
+              .reduce((a, b) => a + b)
+            / data.length
+          )
+        },
+        [deaths]
+      )
 
       if (character.isLoading || character.isError) {
         return null
@@ -226,28 +399,12 @@
 
       return (
         <div>
-          <div style={{textAlign: 'center',padding: '1em'}}>
-            <select onChange={(e) => setAnalyticsID(e.currentTarget.value)}>
-              {analyticsIDs.map((id) => (
-                <option key={id} value={id}>{id}</option>
-              ))}
-            </select>
-          </div>
-          <h1>{character.data.name}</h1>
+          <h2>{character.data.level} {character.data.name} ({min} - {max})</h2>
           <dialog open={killId !== undefined}>
             <form method="dialog" onSubmit={() => setKillId(undefined)}>
               <button>Close</button>
               <br/><br/>
-              <ol>
-                {kill.isLoading ? '⏳' : kill?.data?.map((hit) => (
-                  <li key={hit.id} className={hit.isCharacterHit ? 'good' : 'bad'}>
-                    <span>{hit.isCharacterHit ? '➡️' : '⬅️'}</span>
-                    <div>
-                      <div>{hit.description}</div>
-                    </div>
-                  </li>
-                ))}
-              </ol>
+              <CombatLog isLoading={kill.isLoading} hits={kill?.data}/>
               <br/>
               <button>Close</button>
             </form>
@@ -256,51 +413,108 @@
             <form method="dialog" onSubmit={() => setDeathId(undefined)}>
               <button>Close</button>
               <br/><br/>
-              <pre>
-                {JSON.stringify(death?.data, null, 2)}
-              </pre>
-              <ol>
-                {death.isLoading && '⏳'}
-                {!death.isLoading && death?.data?.map((hit) => (
-                  <li key={hit.id} className={hit.isCharacterHit ? 'good' : 'bad'}>
-                    <span>{hit.isCharacterHit ? '➡️' : '⬅️'}</span>
-                    <div>
-                      <div>{hit.description}</div>
-                    </div>
-                  </li>
-                ))}
-              </ol>
+              <CombatLog isLoading={death.isLoading} hits={death?.data}/>
               <br/>
               <button>Close</button>
             </form>
           </dialog>
           <ol>
-            {events.map((event) => <EventCard key={`${event.type}-${event.id}`} event={event} setDeathId={setDeathId} setKillId={setKillId} /> )}
+            {events.map((event) => <EventCard
+              key={`${event.type}-${event.id}`}
+              event={event}
+              setDeathId={setDeathId}
+              setKillId={setKillId}
+            />)}
+          </ol>
+        </div>
+      )
+    }
+
+    function CharacterListEntry({ analyticsID, onSelect }) {
+      const character = useCharacterQuery(analyticsID)
+
+      if (character.isLoading || character.isError) {
+        return null
+      }
+
+      return (
+        <li onClick={onSelect}>
+          <span>🔄</span>
+          <div>
+            <div>
+              <b>{character?.data?.level} {character?.data?.name}</b>
+              {' '}
+              {getTimeAgo(character?.data?.lastUpdate)}
+            </div>
+          </div>
+        </li>
+      )
+    }
+
+    function CharacterList({ analyticsIDs, setAnalyticsID }) {
+      return (
+        <div>
+          <h2>Character List</h2>
+          <ol>
+            {analyticsIDs.map((analyticsID) => (
+              <CharacterListEntry
+                key={analyticsID}
+                analyticsID={analyticsID}
+                onSelect={() => setAnalyticsID(analyticsID)}
+              />
+            ))}
           </ol>
         </div>
       )
     }
 
     function App() {
+      useQueryInvalidationEffect(5000)
+
+      const analyticsIDs = [
+        // 'Korbinian_376_DWAnalyticsID',
+        // 'Abbott_171_DWAnalyticsID',
+        // 'Urza_169_DWAnalyticsID',
+        // 'Bataar_170_DWAnalyticsID',
+        'Sweeper_2_DWAnalyticsID',
+        // 'Diakon_166_DWAnalyticsID',
+      ]
+
+      const [analyticsID, setAnalyticsID] = React.useState(analyticsIDs[0])
+
       return (
-        <ReactQuery.QueryClientProvider client={globalQueryClient}>
-          <Character />
-        </ReactQuery.QueryClientProvider>
+        <div>
+          <h1>Analytics</h1>
+          <CharacterList analyticsIDs={analyticsIDs} setAnalyticsID={setAnalyticsID}/>
+          <Character analyticsID={analyticsID}/>
+        </div>
+      )
+    }
+
+    function AppWrapper() {
+      return (
+        <React.StrictMode>
+          <ReactQuery.QueryClientProvider client={globalQueryClient}>
+            <App/>
+          </ReactQuery.QueryClientProvider>
+        </React.StrictMode>
       )
     }
 
     const root = ReactDOM.createRoot(document.querySelector('#root'))
-    root.render(<App/>)
+    root.render(<AppWrapper/>)
   </script>
   <style>
     body, html {
       margin: 0;
       font-family: Outfit, sans-serif;
     }
-    h1 {
+
+    h1, h2 {
       text-align: center;
       color: #3d3d3d;
     }
+
     ol {
       list-style: none;
       width: 85%;
@@ -311,11 +525,13 @@
       border-left: 2px solid #e3e3e3;
       gap: 16px;
     }
+
     li {
       display: flex;
       gap: 24px;
       border: 1px solid #e3e3e3;
     }
+
     li > span {
       background-color: #f4f6f8;
       color: #7b7b7b;
@@ -329,6 +545,7 @@
       flex-shrink: 0;
       overflow: hidden;
     }
+
     li > div {
       display: flex;
       flex-direction: column;
@@ -337,38 +554,17 @@
       color: #7b7b7b;
       line-height: 1.5;
     }
+
     li.good {
       box-shadow: 0 0 4px inset greenyellow;
     }
+
     li.bad {
       box-shadow: 0 0 4px inset red;
     }
+
     pre {
       margin-top: 0;
-    }
-    select {
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-      border: 0;
-      outline: 0;
-      font: inherit;
-      width: 20em;
-      height: 3em;
-      padding: 0 1em;
-      border-radius: 0.25em;
-      box-shadow: 0 0 1em 0 rgba(0, 0, 0, 0.2);
-      cursor: pointer;
-    }
-    select option {
-      color: inherit;
-      background-color: #320a28;
-    }
-    select:focus {
-      outline: none;
-    }
-    select::-ms-expand {
-      display: none;
     }
   </style>
 </head>
