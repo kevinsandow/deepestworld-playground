@@ -94,11 +94,11 @@
             {md}
           </AccordionSummary>
           <AccordionDetails>
-            <Typography variant="h6">Mods</Typography>
+            <Typography variant="h6">Possible Mods</Typography>
             <pre>{JSON.stringify(mdInfo?.data?.mods, null, 2)}</pre>
             {((mdInfo?.data?.cmps?.length ?? 0) > 0) && (
               <Box>
-                <Typography variant="h6">Components</Typography>
+                <Typography variant="h6">Possible Components</Typography>
                 <pre>{JSON.stringify(mdInfo?.data?.cmps, null, 2)}</pre>
               </Box>
             )}
@@ -120,7 +120,7 @@
             {mod}
           </AccordionSummary>
           <AccordionDetails>
-            <Typography variant="h6">Item Types</Typography>
+            <Typography variant="h6">Found on Item Types</Typography>
             <pre>{JSON.stringify(mpdInfo?.data?.mds, null, 2)}</pre>
           </AccordionDetails>
         </Accordion>
@@ -140,7 +140,7 @@
             {cmp}
           </AccordionSummary>
           <AccordionDetails>
-            <Typography variant="h6">Item Types</Typography>
+            <Typography variant="h6">Found on Item Types</Typography>
             <pre>{JSON.stringify(cmpInfo?.data?.mds, null, 2)}</pre>
           </AccordionDetails>
         </Accordion>
