@@ -10,7 +10,6 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
           integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <style>
-
     html, body, #map {
       margin: 0;
       height: 100%;
@@ -31,57 +30,36 @@
 <body>
 <div id="map"></div>
 <script>
+  const l = parseInt(new URLSearchParams(window.location.search).get('l') ?? '0')
+
   const map = L.map(
     'map',
     {
       crs: L.CRS.Simple,
       center: [0, 0],
-      zoom: 0,
-      minZoom: -Infinity,
-      maxZoom: 0,
-      zoomSnap: 2,
-      zoomDelta: 2
+      minZoom: -2,
+      maxZoom: 4,
+      zoomSnap: 1,
+      zoomDelta: 1
     },
   )
 
-  const scale = 96 / 16
-
-  L.tileLayer('tiles/{z}.{y}.{x}.bmp', {
+  L.tileLayer(`https://dw.kvn.wtf/tile/{z}/${l}/{y}/{x}`, {
+  // L.tileLayer(`tiles/${l}.{y}.{x}.bmp`, {
     attribution: '&copy; <a href="https://deepestworld.com">Deepest World</a>',
     continuesWorld: false,
     noWrap: true,
-    minZoom: -Infinity,
-    maxZoom: 0,
-    tileSize: 16 * scale,
+    minNativeZoom: 2,
+    maxNativeZoom: 2,
+    minZoom: -2,
+    maxZoom: 4,
   }).addTo(map)
-
-  const ZoomViewer = L.Control.extend({
-    onAdd() {
-      const container = L.DomUtil.create('div')
-      const gauge = L.DomUtil.create('div')
-      container.style.background = 'rgba(21, 21, 21, 0.9)'
-      container.style.border = '1px solid rgb(60, 60, 60)'
-      container.style.color = 'rgb(255, 255, 255)'
-      container.style.fontFamily = 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"'
-      container.style.fontSize = '16px'
-      container.style.fontWeight = 400
-      container.style.padding = '2px 8px'
-      container.style.userSelect = 'none'
-      gauge.innerHTML = `World Layer: ${map.getZoom()}`
-      map.on('zoomstart zoom zoomend', (ev) => {
-        gauge.innerHTML = `World Layer: ${map.getZoom()}`
-      })
-      container.appendChild(gauge)
-      return container
-    }
-  });
-
-  new ZoomViewer().addTo(map)
 
   const popup = L.popup()
 
-  function onMapClick(e) {
-    const l = map.getZoom()
+  map.on('click', function onMapClick(e) {
+    const scale = 4
+
     const x = Math.floor(e.latlng.lng / scale)
     const y = Math.floor(-e.latlng.lat / scale)
 
@@ -93,11 +71,6 @@
       .setLatLng(e.latlng)
       .setContent(`World Position: ${l},${x},${y}<br>Zone Level: ${zoneLevel}`)
       .openOn(map)
-  }
-
-  map.on('click', onMapClick)
-  map.on('zoomstart zoom zoomend', (ev) => {
-    popup.close()
   })
 
   map.setView([0, 0], 0)
