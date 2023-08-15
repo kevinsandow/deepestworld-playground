@@ -25,12 +25,43 @@
       image-rendering: -moz-crisp-edges;
       image-rendering: crisp-edges;
     }
+
+    #layers {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      margin-top: 2em;
+      padding: 1em;
+      z-index: 1000;
+    }
   </style>
 </head>
 <body>
 <div id="map"></div>
+<select id="layers">
+</select>
 <script>
   const l = parseInt(new URLSearchParams(window.location.search).get('l') ?? '0')
+
+  fetch('https://dw.kvn.wtf/info/chunks')
+    .then((response) => response.json())
+    .then((options) => {
+      const layers = document.getElementById('layers')
+      options.forEach((option) => {
+        const opt = document.createElement('option')
+        opt.value = option.l
+        if (option.l === l) {
+          opt.selected = 'selected'
+        }
+        opt.innerText = `Layer ${option.l}: ${option.count.toLocaleString()} chunk(s)`
+        layers.appendChild(opt)
+      })
+      layers.addEventListener('change', (e) => {
+        const params = new URLSearchParams(location.search)
+        params.set('l', e.target.value)
+        location.href = `${location.pathname}?${params}`
+      })
+    })
 
   const map = L.map(
     'map',
