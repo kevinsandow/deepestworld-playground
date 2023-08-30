@@ -49,7 +49,11 @@
       return `+${t}${unit}`
     }
 
-    function EventCard({ event, setDeathId, setKillId }) {
+    function EventCard({ event, cid }) {
+      const [showDetails, setShowDetails] = React.useState(false)
+      const death = useDeathRecapQuery(cid, showDetails && event.type === 'death' ? event.id : undefined)
+      const kill = useKillRecapQuery(cid, showDetails && event.type === 'kill' ? event.id : undefined)
+
       switch (event.type) {
         case 'update':
           return (
@@ -66,7 +70,7 @@
           )
         case 'death':
           return (
-            <li onClick={() => setDeathId(event.id)} className='bad clickable'>
+            <li onClick={() => setShowDetails(current => !current)} className='bad clickable'>
               <span>💀</span>
               <div>
                 <div>
@@ -76,6 +80,7 @@
                   {' '}
                   {getTimeAgo(event.when)}<br/>
                 </div>
+                {showDetails && <CombatLog isLoading={death.isLoading} hits={death?.data}/>}
                 <pre>{event.description}</pre>
               </div>
             </li>
@@ -113,7 +118,7 @@
           )
         case 'kill':
           return (
-            <li onClick={() => setKillId(event.id)} className='good clickable'>
+            <li onClick={() => setShowDetails(current => !current)} className='good clickable'>
               <span>️⚔️</span>
               <div>
                 <div>
@@ -123,6 +128,8 @@
                   {' '}
                   {getTimeAgo(event.when)}
                 </div>
+                {showDetails && <CombatLog isLoading={kill.isLoading} hits={kill?.data}/>}
+                <pre>{event.description}</pre>
               </div>
             </li>
           )
@@ -261,10 +268,10 @@
         const combatStart = new Date(firstHit.endsWith('Z') ? firstHit : firstHit + 'Z')
 
         return entries.map((entry) => {
-          const attacker = entry.isCharacterHit ? entry.characterId : entry.monsterID
-          const attackerHP = entry.isCharacterHit ? entry.characterHP : entry.monsterHP
-          const target = entry.isCharacterHit ? entry.monsterID : entry.characterId
-          const targetHP = Math.max(0, (entry.isCharacterHit ? entry.monsterHP : entry.characterHP) - entry.damage)
+          const attacker = entry.isCharacterHit ? entry.monsterID : entry.characterId
+          const attackerHP = entry.isCharacterHit ? entry.monsterHP : entry.characterHP
+          const target = entry.isCharacterHit ? entry.characterId : entry.monsterID
+          const targetHP = Math.max(0, (entry.isCharacterHit ? entry.characterHP : entry.monsterHP) - entry.damage)
 
           return {
             id: entry.id,
@@ -324,12 +331,6 @@
 
       const kills = useKillsQuery(character?.data?.id)
 
-      const [deathId, setDeathId] = React.useState(undefined)
-      const death = useDeathRecapQuery(character?.data?.id, deathId)
-
-      const [killId, setKillId] = React.useState(undefined)
-      const kill = useKillRecapQuery(character?.data?.id, killId)
-
       const events = React.useMemo(() => {
         const results = [
           ...(deaths.data ?? []).map((x) => ({ ...x, type: 'death' })),
@@ -386,6 +387,7 @@
       return (
         <div>
           <h2>{character.data.level} {character.data.name} ({min} - {max})</h2>
+          {/*
           <dialog open={killId !== undefined}>
             <form method="dialog" onSubmit={() => setKillId(undefined)}>
               <button>Close</button>
@@ -404,12 +406,12 @@
               <button>Close</button>
             </form>
           </dialog>
+          */}
           <ol>
             {events.map((event) => <EventCard
               key={`${event.type}-${event.id}`}
+              cid={character?.data?.id}
               event={event}
-              setDeathId={setDeathId}
-              setKillId={setKillId}
             />)}
           </ol>
         </div>
@@ -510,6 +512,7 @@
     li {
       display: flex;
       gap: 24px;
+      padding-right: 16px;
       border: 1px solid #e3e3e3;
     }
 
@@ -534,6 +537,7 @@
       gap: 8px;
       color: #7b7b7b;
       line-height: 1.5;
+      width: 100%;
     }
 
     li.good {
