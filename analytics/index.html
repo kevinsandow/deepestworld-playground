@@ -74,8 +74,9 @@
                   {' '}
                   <b>{event.levelOfMurderer}{'💀'.repeat(event.rankOfMurderer ?? 0)} {event.nameOfMurderer}</b>
                   {' '}
-                  {getTimeAgo(event.when)}
+                  {getTimeAgo(event.when)}<br/>
                 </div>
+                <pre>{event.description}</pre>
               </div>
             </li>
           )
@@ -457,12 +458,7 @@
       useQueryInvalidationEffect(5000)
 
       const analyticsIDs = [
-        // 'Korbinian_376_DWAnalyticsID',
-        // 'Abbott_171_DWAnalyticsID',
-        'Urza_6_DWAnalyticsID',
-        // 'Bataar_170_DWAnalyticsID',
         'Sweeper_2_DWAnalyticsID',
-        'Diakon_7_DWAnalyticsID',
       ]
 
       const [analyticsID, setAnalyticsID] = React.useState(analyticsIDs[0])
