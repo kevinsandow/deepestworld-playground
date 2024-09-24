@@ -76,7 +76,6 @@
   )
 
   L.tileLayer(`https://dw.kvn.wtf/tile/{z}/${z}/{y}/{x}`, {
-  // L.tileLayer(`tiles/${l}.{y}.{x}.bmp`, {
     attribution: '&copy; <a href="https://deepestworld.com">Deepest World</a>',
     continuesWorld: false,
     noWrap: true,
@@ -94,13 +93,21 @@
     const x = Math.floor(e.latlng.lng / scale)
     const y = Math.floor(-e.latlng.lat / scale)
 
-    const zoneLevel = 1
-      + Math.abs(l)
-      + Math.floor(Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) / 16)
+    const zoneLevel = Math.floor(
+      1 +
+      Math.floor(Math.abs(z) / 2) +
+      Math.floor(Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) / 16)
+    );
+
+    const zoneTier = Math.ceil(zoneLevel / 10);
 
     popup
       .setLatLng(e.latlng)
-      .setContent(`World Position: ${l},${x},${y}<br>Zone Level: ${zoneLevel}`)
+      .setContent(`
+        World Position: ${x},${y},${z}<br>
+        Zone Level: ${zoneLevel}<br>
+        Zone Tier: ${zoneTier}
+      `)
       .openOn(map)
   })
 
