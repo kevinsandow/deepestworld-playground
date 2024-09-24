@@ -41,7 +41,7 @@
 <select id="layers">
 </select>
 <script>
-  const l = parseInt(new URLSearchParams(window.location.search).get('l') ?? '0')
+  const z = parseInt(new URLSearchParams(window.location.search).get('l') ?? '0')
 
   fetch('https://dw.kvn.wtf/info/chunks')
     .then((response) => response.json())
@@ -49,11 +49,11 @@
       const layers = document.getElementById('layers')
       options.forEach((option) => {
         const opt = document.createElement('option')
-        opt.value = option.l
-        if (option.l === l) {
+        opt.value = option.z
+        if (option.z === z) {
           opt.selected = 'selected'
         }
-        opt.innerText = `Layer ${option.l}: ${option.count.toLocaleString()} chunk(s)`
+        opt.innerText = `Layer ${option.z}: ${option.count.toLocaleString()} chunk(s)`
         layers.appendChild(opt)
       })
       layers.addEventListener('change', (e) => {
@@ -75,7 +75,7 @@
     },
   )
 
-  L.tileLayer(`https://dw.kvn.wtf/tile/{z}/${l}/{y}/{x}`, {
+  L.tileLayer(`https://dw.kvn.wtf/tile/{z}/${z}/{y}/{x}`, {
   // L.tileLayer(`tiles/${l}.{y}.{x}.bmp`, {
     attribution: '&copy; <a href="https://deepestworld.com">Deepest World</a>',
     continuesWorld: false,
