@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Learned</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js" crossorigin></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mui/material@5.14.4/umd/material-ui.production.min.js"
+          crossorigin></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tanstack/react-query@4.32.0/build/umd/index.development.js"
+          crossorigin></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.4.0/dist/axios.min.js" crossorigin></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.22.9/babel.min.js" crossorigin></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap"
+  />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
+  <script type="text/babel">
+    const {
+      Container,
+      CssBaseline,
+      Stack,
+      TableContainer,
+      Table,
+      TableHead,
+      TableRow,
+      TableCell,
+      TableBody,
+      Paper,
+    } = MaterialUI
+
+    const globalQueryClient = new ReactQuery.QueryClient()
+
+    function useLearnedQuery() {
+      return ReactQuery.useQuery({
+        queryKey: ['learned'],
+        queryFn: () => axios.get('https://dw.kvn.wtf/learned').then(({data}) => data),
+      })
+    }
+
+    function LearnedCell({ learned }) {
+      if (!learned) {
+        return (
+          <TableCell>
+            -
+          </TableCell>
+        )
+      }
+
+      return (
+        <TableCell>
+          {learned.lvl * learned.tier} = lvl {learned.lvl} * tier {learned.tier}
+        </TableCell>
+      )
+    }
+
+    function App() {
+      const {data: learned} = useLearnedQuery()
+
+      const players = React.useMemo(() => (learned ?? []).map(({ name }) => name).sort(), [learned])
+      const totalsByPlayer = React.useMemo(() => {
+        const totals = {}
+        for (const playerName of players) {
+          const player = learned.find(({ name }) => name === playerName)
+          const passivesTotals = player.passives.reduce((memo, { lvl, tier }) => memo + lvl * tier, 0)
+          const skillsTotals = player.skills.reduce((memo, { lvl, tier }) => memo + lvl * tier, 0)
+          const statsTotals = player.stats.reduce((memo, { lvl, tier }) => memo + lvl * tier, 0)
+          totals[playerName] = { passives: passivesTotals, skills: skillsTotals, stats: statsTotals, all: passivesTotals + skillsTotals + statsTotals }
+        }
+        return totals
+      }, [learned, players])
+      const passives = React.useMemo(() => [...new Set((learned ?? []).flatMap(({ passives }) => passives.map(({ mod }) => mod)))].sort(), [learned])
+      const skills = React.useMemo(() => [...new Set((learned ?? []).flatMap(({ skills }) => skills.map(({ mod }) => mod)))].sort(), [learned])
+      const stats = React.useMemo(() => [...new Set((learned ?? []).flatMap(({ stats }) => stats.map(({ mod }) => mod)))].sort(), [learned])
+
+      return (
+        <Stack mt={4}>
+          <Container>
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Character</TableCell>
+                    {players.map((player) => <TableCell key={player}>{player}<br/>{totalsByPlayer[player].all}</TableCell>)}
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Passives</TableCell>
+                    {players.map((player) => <TableCell key={player}>{totalsByPlayer[player].passives}</TableCell>)}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {passives.map((passive) => (
+                    <TableRow key={passive}>
+                      <TableCell>{passive}</TableCell>
+                      {players.map((player) => (
+                        <LearnedCell key={player} learned={learned.find(({ name }) => name === player)?.passives.find(({ mod }) => mod === passive)} />
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Skills</TableCell>
+                    {players.map((player) => <TableCell key={player}>{totalsByPlayer[player].skills}</TableCell>)}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {skills.map((skill) => (
+                    <TableRow key={skill}>
+                      <TableCell>{skill}</TableCell>
+                      {players.map((player) => (
+                        <LearnedCell key={player} learned={learned.find(({ name }) => name === player)?.skills.find(({ mod }) => mod === skill)} />
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Stats</TableCell>
+                    {players.map((player) => <TableCell key={player}>{totalsByPlayer[player].stats}</TableCell>)}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {stats.map((stat) => (
+                    <TableRow key={stat}>
+                      <TableCell>{stat}</TableCell>
+                      {players.map((player) => (
+                        <LearnedCell key={player} learned={learned.find(({ name }) => name === player)?.stats.find(({ mod }) => mod === stat)} />
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <pre>{JSON.stringify(learned, null, 2)}</pre>
+          </Container>
+        </Stack>
+      )
+    }
+
+    function AppWrapper() {
+      return (
+        <React.StrictMode>
+          <ReactQuery.QueryClientProvider client={globalQueryClient}>
+            <CssBaseline/>
+            <App/>
+          </ReactQuery.QueryClientProvider>
+        </React.StrictMode>
+      )
+    }
+
+    const root = ReactDOM.createRoot(document.querySelector('#root'));
+    root.render(<AppWrapper/>);
+  </script>
+  <style>
+    th {
+      vertical-align: bottom;
+      text-align: center;
+    }
+
+    th span {
+      -ms-writing-mode: tb-rl;
+      -webkit-writing-mode: vertical-rl;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+</body>
+</html>
