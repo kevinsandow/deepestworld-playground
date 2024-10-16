@@ -60,6 +60,8 @@
     chart.title("Professions").legend(true);
     chart2.title("Smithing Specializations").legend(true);
 
+    chart.yScale().minimum(0);
+    chart2.yScale().minimum(0);
     chart.container('chart1');
     chart2.container('chart2');
     chart.draw();
