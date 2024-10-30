@@ -565,15 +565,15 @@
       const filteredPassives = React.useMemo(() => [...Object.entries(passives), ...newPassives.map(p => [p, []])].filter(([md, lines]) =>
         md.toLowerCase().includes(needle)
         || lines.some((line) => line.toLowerCase().includes(needle))
-      ), [needle])
+      ), [newPassives, needle])
       const filteredSkills = React.useMemo(() => [...Object.entries(skills), ...newSkills.map(s => [s, []])].filter(([md, lines]) =>
         md.toLowerCase().includes(needle)
         || lines.some((line) => line.toLowerCase().includes(needle))
-      ), [needle])
+      ), [newSkills, needle])
       const filteredStats = React.useMemo(() => [...Object.entries(stats), ...newStats.map(s => [s, []])].filter(([md, lines]) =>
         md.toLowerCase().includes(needle)
         || lines.some((line) => line.toLowerCase().includes(needle))
-      ), [needle])
+      ), [newStats, needle])
 
       return (
         <Stack m={2} gap={2}>
@@ -626,7 +626,7 @@
               </TableHead>
               <TableBody>
                 {filteredPassives.map((passive) => (
-                  <TableRow key={passive} className="striped">
+                  <TableRow key={passive} className={passive[1].length > 0 ? "striped" : "striped error"}>
                     <ModCell md={passive[0]} lines={passive[1]}/>
                     {players.map((player) => (
                       <LearnedCell
@@ -654,7 +654,7 @@
               </TableHead>
               <TableBody>
                 {filteredSkills.map((skill) => (
-                  <TableRow key={skill} className="striped">
+                  <TableRow key={skill} className={skill[1].length > 0 ? "striped" : "striped error"}>
                     <ModCell md={skill[0]} lines={skill[1]}/>
                     {players.map((player) => (
                       <LearnedCell
@@ -682,7 +682,7 @@
               </TableHead>
               <TableBody>
                 {filteredStats.map((stat) => (
-                  <TableRow key={stat} className="striped">
+                  <TableRow key={stat} className={stat[1].length > 0 ? "striped" : "striped error"}>
                     <ModCell md={stat[0]} lines={stat[1]}/>
                     {players.map((player) => (
                       <LearnedCell
@@ -731,8 +731,16 @@
       background-color: white;
     }
 
+    tr.striped.error:nth-of-type(odd) {
+      background-color: #ffdddd;
+    }
+
     tr.striped:nth-of-type(even) {
       background-color: lightgray;
+    }
+
+    tr.striped.error:nth-of-type(even) {
+      background-color: #ffaaaa;
     }
   </style>
 </head>
