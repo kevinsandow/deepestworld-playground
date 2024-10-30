@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
   <script type="text/babel">
     const {
-      Container,
+      Alert,
       CssBaseline,
       Stack,
       TableContainer,
@@ -32,36 +32,476 @@
       TableRow,
       TableCell,
       TableBody,
+      TextField,
+      Tooltip,
       Paper,
     } = MaterialUI
 
+    const passives = {
+      'bomb': [
+        'Bomb'
+      ],
+      'multiskill': [
+        'Multiskill'
+      ],
+      'frenzy': [
+        'Frenzy'
+      ],
+      'mpThirst': [
+        'Mana Thirst',
+        'Applies a Buff on you restoring Mana equal to EFFECTIVENESS% of damage dealt or healing done by this Skill over NUM_TICKS sec.'
+      ],
+      'exertion': [
+        'Exertion'
+      ],
+      'conservation': [
+        'Conservation'
+      ],
+      'graft': [
+        'Graft',
+        'Applies a Buff healing for EFFECTIVENESS% of damage dealt by this Skill over NUM_TICKS sec.',
+        'Deals damage instead of healing'
+      ],
+      'masochism': [
+        'Masochism',
+        'Applies a Buff that heals for 200% of damage absorbed, up to EFFECTIVENESS% of damage dealt by this Skill, lasting DURATION.'
+      ],
+      'efficacy': [
+        'Efficacy',
+        'EFFECTIVENESS% more Healing Power',
+        '100% less Casting Speed'
+      ],
+      'bloodless': [
+        'Bloodless',
+        'Enemies have EFFECTIVENESS% less Life Leech against you'
+      ],
+      'sprint': [
+        'Sprint',
+        'EFFECTIVENESS% more Movement Speed'
+      ],
+      'reach': [
+        'Reach',
+        'EFFECTIVENESS% more Range'
+      ],
+      'pk': [
+        'Painkiller',
+        'Die at EFFECTIVENESS% Mana instead of 0 Life.'
+      ],
+      'mpToHpCost': [
+        'Manablood',
+        '100% of Mana Cost is paid with Life'
+      ],
+      'retribution': [
+        'Retribution',
+        'Applies a Debuff that deals damage equal to 50% of healing you do, up to EFFECTIVENESS% of damage dealt by this Skill, lasting DURATION'
+      ],
+      'restitution': [
+        'Restitution',
+        'Applies a Buff that heals for 50% of damage you deal, up to EFFECTIVENESS% of healing done by this Skill, lasting DURATION'
+      ],
+      'aoeMore': [
+        'Area of Effect',
+        'EFFECTIVENESS% more Area of Effect'
+      ],
+      'physDmgMore': [
+        'Physical Damage'
+      ],
+      'fireDmgMore': [
+        'Fire Damage'
+      ],
+      'coldDmgMore': [
+        'Cold Damage'
+      ],
+      'elecDmgMore': [
+        'Lightning Damage'
+      ],
+      'acidDmgMore': [
+        'Acid Damage'
+      ],
+      'dmgMore': [
+        'Damage'
+      ],
+      'physHealMore': [
+        'Physical Healing'
+      ],
+      'fireHealMore': [
+        'Fire Healing'
+      ],
+      'coldHealMore': [
+        'Cold Healing'
+      ],
+      'elecHealMore': [
+        'Lightning Healing'
+      ],
+      'acidHealMore': [
+        'Acid Healing'
+      ],
+      'healMore': [
+        'Healing'
+      ],
+      'strDefMore': [
+        'Armor Rating'
+      ],
+      'dexDefMore': [
+        'Dodge Rating'
+      ],
+      'intDefMore': [
+        'Efficiency Rating'
+      ],
+      'defMore': [
+        'Defense'
+      ],
+      'physborn': [
+        'Physborn'
+      ],
+      'physhazard': [
+        'Physical Hazard',
+        'EFFECTIVENESS% increased Physical Status Effect Chance'
+      ],
+      'physToFire': [
+        'Physical to Fire',
+        'EFFECTIVENESS% of Physical Power converted to Fire Power.'
+      ],
+      'physToCold': [
+        'Physical to Cold',
+        'EFFECTIVENESS% of Physical Power converted to Cold Power.'
+      ],
+      'physToElec': [
+        'Physical to Lightning',
+        'EFFECTIVENESS% of Physical Power converted to Lightning Power.'
+      ],
+      'physToAcid': [
+        'Physical to Acid',
+        'EFFECTIVENESS% of Physical Power converted to Acid Power.'
+      ],
+      'fireborn': [
+        'Fireborn'
+      ],
+      'firehazard': [
+        'Fire Hazard',
+        'EFFECTIVENESS% increased Fire Status Effect Chance'
+      ],
+      'fireToPhys': [
+        'Fire to Physical',
+        'EFFECTIVENESS% of Fire Power converted to Physical Power.'
+      ],
+      'fireToCold': [
+        'Fire to Cold',
+        'EFFECTIVENESS% of Fire Power converted to Cold Power.'
+      ],
+      'fireToElec': [
+        'Fire to Lightning',
+        'EFFECTIVENESS% of Fire Power converted to Lightning Power.'
+      ],
+      'fireToAcid': [
+        'Fire to Acid',
+        'EFFECTIVENESS% of Fire Power converted to Acid Power.'
+      ],
+      'coldborn': [
+        'Coldborn'
+      ],
+      'coldhazard': [
+        'Cold Hazard',
+        'EFFECTIVENESS% increased Cold Status Effect Chance'
+      ],
+      'coldToPhys': [
+        'Cold to Physical',
+        'EFFECTIVENESS% of Cold Power converted to Physical Power.'
+      ],
+      'coldToFire': [
+        'Cold to Fire',
+        'EFFECTIVENESS% of Cold Power converted to Fire Power.'
+      ],
+      'coldToElec': [
+        'Cold to Lightning',
+        'EFFECTIVENESS% of Cold Power converted to Lightning Power.'
+      ],
+      'coldToAcid': [
+        'Cold to Acid',
+        'EFFECTIVENESS% of Cold Power converted to Acid Power.'
+      ],
+      'elecborn': [
+        'Elecborn'
+      ],
+      'elechazard': [
+        'Lightning Hazard',
+        'EFFECTIVENESS% increased Lightning Status Effect Chance'
+      ],
+      'elecToPhys': [
+        'Lightning to Physical',
+        'EFFECTIVENESS% of Lightning Power converted to Physical Power.'
+      ],
+      'elecToFire': [
+        'Lightning to Fire',
+        'EFFECTIVENESS% of Lightning Power converted to Fire Power.'
+      ],
+      'elecToCold': [
+        'Lightning to Cold',
+        'EFFECTIVENESS% of Lightning Power converted to Cold Power.'
+      ],
+      'elecToAcid': [
+        'Lightning to Acid',
+        'EFFECTIVENESS% of Lightning Power converted to Acid Power.'
+      ],
+      'acidborn': [
+        'Acidborn'
+      ],
+      'acidhazard': [
+        'Acid Hazard',
+        'EFFECTIVENESS% increased Acid Status Effect Chance'
+      ],
+      'acidToPhys': [
+        'Acid to Physical',
+        'EFFECTIVENESS% of Acid Power converted to Physical Power.'
+      ],
+      'acidToFire': [
+        'Acid to Fire',
+        'EFFECTIVENESS% of Acid Power converted to Fire Power.'
+      ],
+      'acidToCold': [
+        'Acid to Cold',
+        'EFFECTIVENESS% of Acid Power converted to Cold Power.'
+      ],
+      'acidToElec': [
+        'Acid to Lightning',
+        'EFFECTIVENESS% of Acid Power converted to Lightning Power.'
+      ],
+      'moveSpeed': [
+        'Movement Speed'
+      ],
+      'climbSpeed': [
+        'Climbing Speed'
+      ],
+      'threatful': [
+        'More Threat'
+      ],
+      'threatless': [
+        'Less Threat'
+      ]
+    }
+
+    const skills = {
+      'dmg1': [
+        'Instant Attack',
+        'Deals damage equal to EFFECTIVENESS% of Damage Power.'
+      ],
+      'heal1': [
+        'Instant Heal',
+        'Heals for EFFECTIVENESS% of Healing Power.'
+      ],
+      'shield1': [
+        'Instant Lifeshield',
+        'Lifeshields for EFFECTIVENESS% of Healing Power, lasting DURATION.'
+      ],
+      'dmg2': [
+        'Projectile Attack',
+        'Deals damage equal to EFFECTIVENESS% of Damage Power.'
+      ],
+      'heal2': [
+        'Projectile Heal',
+        'Heals for EFFECTIVENESS% of Healing Power.'
+      ],
+      'shield2': [
+        'Projectile Lifeshield',
+        'Lifeshields for EFFECTIVENESS% of Healing Power, lasting DURATION.'
+      ],
+      'dmg3': [
+        'Cast-Time Attack',
+        'Deals damage equal to EFFECTIVENESS% of Damage Power.'
+      ],
+      'heal3': [
+        'Cast-Time Heal',
+        'Heals for EFFECTIVENESS% of Healing Power.'
+      ],
+      'shield3': [
+        'Cast-Time Lifeshield',
+        'Lifeshields for EFFECTIVENESS% of Healing Power, lasting DURATION.'
+      ],
+      'dash': [
+        'Dash',
+        'Dashes to the target location.'
+      ],
+      'blink': [
+        'Blink',
+        'Teleports to the target location.'
+      ],
+      'portal': [
+        'Portal',
+        'First use sets the destination. Second use opens a portal to the destination. Unequipping the rune resets the destination.'
+      ],
+      'blessing': [
+        'Blessing',
+        'Applies socketed Passives at EFFECTIVENESS% effectiveness. Cost is paid with Maximum Mana.'
+      ],
+      'buff': [
+        'Buff',
+        'Applies socketed Passives at EFFECTIVENESS% effectiveness, lasting DURATION.'
+      ],
+      'buff2': [
+        'Buff II',
+        'Applies socketed Passives at EFFECTIVENESS% effectiveness, lasting DURATION.'
+      ],
+      'debuff': [
+        'Debuff',
+        'Applies socketed Passives at EFFECTIVENESS% effectiveness, lasting DURATION.'
+      ],
+      'debuff2': [
+        'Debuff II',
+        'Applies socketed Passives at EFFECTIVENESS% effectiveness, lasting DURATION.'
+      ],
+      'powerSurge': [
+        'Power Surge',
+        'Applies a Buff on you granting socketed Passives at EFFECTIVENESS% effectiveness, lasting DURATION.'
+      ],
+      'taunt': [
+        'Taunt',
+        'Forces the target to target you',
+        'Sets your Threat equal to the highest Threat',
+        'Applies a Debuff forcing aggro on you for 2 sec'
+      ],
+      'divert': [
+        'Divert',
+        'Forces the target to untarget you if possible',
+        'Sets your Threat equal to the lowest Threat'
+      ]
+    }
+
+    const stats = {
+      'physDmgInc': [
+        'Physical Damage'
+      ],
+      'fireDmgInc': [
+        'Fire Damage'
+      ],
+      'coldDmgInc': [
+        'Cold Damage'
+      ],
+      'elecDmgInc': [
+        'Lightning Damage'
+      ],
+      'acidDmgInc': [
+        'Acid Damage'
+      ],
+      'physHealInc': [
+        'Physical Healing'
+      ],
+      'fireHealInc': [
+        'Fire Healing'
+      ],
+      'coldHealInc': [
+        'Cold Healing'
+      ],
+      'elecHealInc': [
+        'Lightning Healing'
+      ],
+      'acidHealInc': [
+        'Acid Healing'
+      ],
+      'dmgInc': [
+        'All Damage Types'
+      ],
+      'healInc': [
+        'Healing Power'
+      ],
+      'gcdr': [
+        'Action Speed'
+      ],
+      'crit': [
+        'Critical Chance'
+      ],
+      'critMult': [
+        'Critical Multiplier'
+      ],
+      'block': [
+        'Block Chance'
+      ],
+      'defInc': [
+        'All Defenses'
+      ],
+      'strDefInc': [
+        'Armor Rating'
+      ],
+      'dexDefInc': [
+        'Dodge Rating'
+      ],
+      'intDefInc': [
+        'Efficiency Rating'
+      ],
+      'hpInc': [
+        'Maximum Life'
+      ],
+      'mpInc': [
+        'Maximum Mana'
+      ],
+      'hpRegenInc': [
+        'Life Regeneration'
+      ],
+      'mpRegenInc': [
+        'Mana Regeneration'
+      ],
+      'aoeInc': [
+        'Area of Effect'
+      ],
+      'eleChance': [
+        'Status Effect Chance'
+      ],
+    }
+
     const globalQueryClient = new ReactQuery.QueryClient()
 
-    function useLearnedQuery() {
+    function useLearnedQuery () {
       return ReactQuery.useQuery({
         queryKey: ['learned'],
-        queryFn: () => axios.get('https://dw.kvn.wtf/learned').then(({data}) => data),
+        queryFn: () => axios.get('https://dw.kvn.wtf/learned').then(({ data }) => data),
       })
     }
 
-    function LearnedCell({ learned }) {
-      if (!learned) {
+    function ModCell ({ md, lines }) {
+      if (!lines) {
         return (
-          <TableCell>
-            -
+          <TableCell size="small">
+            {md}
           </TableCell>
         )
       }
 
       return (
-        <TableCell>
-          {learned.lvl * learned.tier} = lvl {learned.lvl} * tier {learned.tier}
-        </TableCell>
+        <Tooltip title={<>
+          <div><strong>{lines[0] ?? 'new or deprecated'}</strong></div>
+          {lines.slice(1).map(line => <div>{line}</div>)}
+        </>}>
+          <TableCell size="small">
+            {md}
+          </TableCell>
+        </Tooltip>
       )
     }
 
-    function App() {
-      const {data: learned} = useLearnedQuery()
+    function LearnedCell ({ learned }) {
+      if (!learned) {
+        return (
+          <Tooltip title="Not learned">
+            <TableCell size="small">
+              -
+            </TableCell>
+          </Tooltip>
+        )
+      }
+
+      return (
+        <Tooltip title={<>
+          <div>lvl: {learned.lvl}</div>
+          <div>tier: {learned.tier}</div>
+        </>}>
+          <TableCell size="small">
+            {learned.lvl * learned.tier}
+          </TableCell>
+        </Tooltip>
+      )
+    }
+
+    function App () {
+      const { data: learned } = useLearnedQuery()
 
       const players = React.useMemo(() => (learned ?? []).map(({ name }) => name).sort(), [learned])
       const totalsByPlayer = React.useMemo(() => {
@@ -71,79 +511,200 @@
           const passivesTotals = player.passives.reduce((memo, { lvl, tier }) => memo + lvl * tier, 0)
           const skillsTotals = player.skills.reduce((memo, { lvl, tier }) => memo + lvl * tier, 0)
           const statsTotals = player.stats.reduce((memo, { lvl, tier }) => memo + lvl * tier, 0)
-          totals[playerName] = { passives: passivesTotals, skills: skillsTotals, stats: statsTotals, all: passivesTotals + skillsTotals + statsTotals }
+          totals[playerName] = {
+            passives: passivesTotals,
+            skills: skillsTotals,
+            stats: statsTotals,
+            all: passivesTotals + skillsTotals + statsTotals,
+          }
         }
         return totals
       }, [learned, players])
-      const passives = React.useMemo(() => [...new Set((learned ?? []).flatMap(({ passives }) => passives.map(({ mod }) => mod)))].sort(), [learned])
-      const skills = React.useMemo(() => [...new Set((learned ?? []).flatMap(({ skills }) => skills.map(({ mod }) => mod)))].sort(), [learned])
-      const stats = React.useMemo(() => [...new Set((learned ?? []).flatMap(({ stats }) => stats.map(({ mod }) => mod)))].sort(), [learned])
+
+      const newPassives = React.useMemo(() => {
+        const discoveredPassives = [
+          ...new Set(
+            learned
+              ?.flatMap(player => player.passives)
+              ?.map(passive => passive.mod)
+            ?? []
+          )
+        ]
+
+        return discoveredPassives.filter(passive => !(passive in passives))
+      }, [learned])
+
+      const newSkills = React.useMemo(() => {
+        const discoveredSkills = [
+          ...new Set(
+            learned
+              ?.flatMap(player => player.skills)
+              ?.map(skill => skill.mod)
+            ?? []
+          )
+        ]
+
+        return discoveredSkills.filter(skill => !(skill in skills))
+      }, [learned])
+
+      const newStats = React.useMemo(() => {
+        const discoveredStats = [
+          ...new Set(
+            learned
+              ?.flatMap(player => player.stats)
+              ?.map(stat => stat.mod)
+            ?? []
+          )
+        ]
+
+        return discoveredStats.filter(stat => !(stat in stats))
+      }, [learned])
+
+      const [filter, setFilter] = React.useState('')
+      const needle = React.useMemo(() => filter.toLowerCase().trim(), [filter])
+      const filteredPassives = React.useMemo(() => [...Object.entries(passives), ...newPassives.map(p => [p, []])].filter(([md, lines]) =>
+        md.toLowerCase().includes(needle)
+        || lines.some((line) => line.toLowerCase().includes(needle))
+      ), [needle])
+      const filteredSkills = React.useMemo(() => [...Object.entries(skills), ...newSkills.map(s => [s, []])].filter(([md, lines]) =>
+        md.toLowerCase().includes(needle)
+        || lines.some((line) => line.toLowerCase().includes(needle))
+      ), [needle])
+      const filteredStats = React.useMemo(() => [...Object.entries(stats), ...newStats.map(s => [s, []])].filter(([md, lines]) =>
+        md.toLowerCase().includes(needle)
+        || lines.some((line) => line.toLowerCase().includes(needle))
+      ), [needle])
 
       return (
-        <Stack mt={4}>
-          <Container>
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Character</TableCell>
-                    {players.map((player) => <TableCell key={player}>{player}<br/>{totalsByPlayer[player].all}</TableCell>)}
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Passives</TableCell>
-                    {players.map((player) => <TableCell key={player}>{totalsByPlayer[player].passives}</TableCell>)}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {passives.map((passive) => (
-                    <TableRow key={passive}>
-                      <TableCell>{passive}</TableCell>
-                      {players.map((player) => (
-                        <LearnedCell key={player} learned={learned.find(({ name }) => name === player)?.passives.find(({ mod }) => mod === passive)} />
-                      ))}
-                    </TableRow>
+        <Stack m={2} gap={2}>
+          <Stack gap={1}>
+            {newPassives.map((passive) => (
+              <Alert key={passive} severity="error">
+                Unknown passive discovered: <code>{passive}</code>
+              </Alert>
+            ))}
+            {newSkills.map((skill) => (
+              <Alert key={skill} severity="error">
+                Unknown skill discovered: <code>{skill}</code>
+              </Alert>
+            ))}
+            {newStats.map((stat) => (
+              <Alert key={stat} severity="error">
+                Unknown stat discovered: <code>{stat}</code>
+              </Alert>
+            ))}
+          </Stack>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow className="headline">
+                  <TableCell>
+                    Character<br/>
+                    <TextField
+                      size="small"
+                      placeholder="Search..."
+                      fullWidth
+                      value={filter}
+                      onChange={(e) => setFilter(e.target.value)}
+                    />
+                  </TableCell>
+                  {players.map((player) => (
+                    <TableCell key={player}>
+                      {player}<br/>
+                      {totalsByPlayer[player].all}
+                    </TableCell>
                   ))}
-                </TableBody>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Skills</TableCell>
-                    {players.map((player) => <TableCell key={player}>{totalsByPlayer[player].skills}</TableCell>)}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {skills.map((skill) => (
-                    <TableRow key={skill}>
-                      <TableCell>{skill}</TableCell>
-                      {players.map((player) => (
-                        <LearnedCell key={player} learned={learned.find(({ name }) => name === player)?.skills.find(({ mod }) => mod === skill)} />
-                      ))}
-                    </TableRow>
+                </TableRow>
+                <TableRow className="subheadline">
+                  <TableCell>Passives</TableCell>
+                  {players.map((player) => (
+                    <TableCell key={player}>
+                      {totalsByPlayer[player].passives}
+                    </TableCell>
                   ))}
-                </TableBody>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Stats</TableCell>
-                    {players.map((player) => <TableCell key={player}>{totalsByPlayer[player].stats}</TableCell>)}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredPassives.map((passive) => (
+                  <TableRow key={passive} className="striped">
+                    <ModCell md={passive[0]} lines={passive[1]}/>
+                    {players.map((player) => (
+                      <LearnedCell
+                        key={player}
+                        learned={learned.find(({ name }) => name === player)?.passives.find(({ mod }) => mod === passive[0])}
+                      />
+                    ))}
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {stats.map((stat) => (
-                    <TableRow key={stat}>
-                      <TableCell>{stat}</TableCell>
-                      {players.map((player) => (
-                        <LearnedCell key={player} learned={learned.find(({ name }) => name === player)?.stats.find(({ mod }) => mod === stat)} />
-                      ))}
-                    </TableRow>
+                ))}
+                {filteredPassives.length === 0 && (
+                  <TableRow className="striped">
+                    <TableCell colSpan={players.length + 1}>No passive found</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+              <TableHead>
+                <TableRow className="subheadline">
+                  <TableCell>Skills</TableCell>
+                  {players.map((player) => (
+                    <TableCell key={player}>
+                      {totalsByPlayer[player].skills}
+                    </TableCell>
                   ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Container>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredSkills.map((skill) => (
+                  <TableRow key={skill} className="striped">
+                    <ModCell md={skill[0]} lines={skill[1]}/>
+                    {players.map((player) => (
+                      <LearnedCell
+                        key={player}
+                        learned={learned.find(({ name }) => name === player)?.skills.find(({ mod }) => mod === skill[0])}
+                      />
+                    ))}
+                  </TableRow>
+                ))}
+                {filteredSkills.length === 0 && (
+                  <TableRow className="striped">
+                    <TableCell colSpan={players.length + 1}>No skill found</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+              <TableHead>
+                <TableRow className="subheadline">
+                  <TableCell>Stats</TableCell>
+                  {players.map((player) => (
+                    <TableCell key={player}>
+                      {totalsByPlayer[player].stats}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredStats.map((stat) => (
+                  <TableRow key={stat} className="striped">
+                    <ModCell md={stat[0]} lines={stat[1]}/>
+                    {players.map((player) => (
+                      <LearnedCell
+                        key={player}
+                        learned={learned.find(({ name }) => name === player)?.stats.find(({ mod }) => mod === stat[0])}
+                      />
+                    ))}
+                  </TableRow>
+                ))}
+                {filteredStats.length === 0 && (
+                  <TableRow className="striped">
+                    <TableCell colSpan={players.length + 1}>No stats found</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </Stack>
       )
     }
 
-    function AppWrapper() {
+    function AppWrapper () {
       return (
         <React.StrictMode>
           <ReactQuery.QueryClientProvider client={globalQueryClient}>
@@ -154,21 +715,24 @@
       )
     }
 
-    const root = ReactDOM.createRoot(document.querySelector('#root'));
-    root.render(<AppWrapper/>);
+    const root = ReactDOM.createRoot(document.querySelector('#root'))
+    root.render(<AppWrapper/>)
   </script>
   <style>
-    th {
-      vertical-align: bottom;
-      text-align: center;
+    tr.headline {
+      background-color: gray;
     }
 
-    th span {
-      -ms-writing-mode: tb-rl;
-      -webkit-writing-mode: vertical-rl;
-      writing-mode: vertical-rl;
-      transform: rotate(180deg);
-      white-space: nowrap;
+    tr.subheadline {
+      background-color: darkgray;
+    }
+
+    tr.striped:nth-of-type(odd) {
+      background-color: white;
+    }
+
+    tr.striped:nth-of-type(even) {
+      background-color: lightgray;
     }
   </style>
 </head>
