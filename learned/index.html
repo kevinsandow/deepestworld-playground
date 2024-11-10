@@ -39,23 +39,32 @@
 
     const passives = {
       'bomb': [
-        'Bomb'
+        'Bomb',
+        'Delays this skill by 5 sec'
       ],
       'multiskill': [
-        'Multiskill'
+        'Multiskill',
+        'Adds EFFECTIVENESS Passives'
       ],
       'frenzy': [
-        'Frenzy'
+        'Frenzy',
+        'Applies a Buff on you when you hit while in combat, lasting DURATION, and refreshing when you use a skill different from the last one. Has 1 stack per different skill used.',
+        'EFFECTIVENESS% more Action Speed per stack',
+        'EFFECTIVENESS% more Movement Speed per stack'
       ],
       'mpThirst': [
         'Mana Thirst',
         'Applies a Buff on you restoring Mana equal to EFFECTIVENESS% of damage dealt or healing done by this Skill over NUM_TICKS sec.'
       ],
       'exertion': [
-        'Exertion'
+        'Exertion',
+        'Applies a Debuff on you dealing damage equal to EFFECTIVENESS% of damage dealt or healing done by this Skill over NUM_TICKS sec.',
+        '50% more Power'
       ],
       'conservation': [
-        'Conservation'
+        'Conservation',
+        'Applies a Buff on you healing for EFFECTIVENESS% of damage dealt or healing done by this Skill over NUM_TICKS sec.',
+        '50% less Power'
       ],
       'graft': [
         'Graft',
@@ -64,7 +73,8 @@
       ],
       'masochism': [
         'Masochism',
-        'Applies a Buff that heals for 200% of damage absorbed, up to EFFECTIVENESS% of damage dealt by this Skill, lasting DURATION.'
+        'Applies a Buff that heals for 200% of damage absorbed, up to EFFECTIVENESS% of damage dealt by this Skill, lasting DURATION.',
+        'Deals damage instead of healing'
       ],
       'efficacy': [
         'Efficacy',
@@ -104,55 +114,49 @@
         'EFFECTIVENESS% more Area of Effect'
       ],
       'physDmgMore': [
-        'Physical Damage'
+        'Physical Power',
+        'EFFECTIVENESS% more Physical Power'
       ],
       'fireDmgMore': [
-        'Fire Damage'
+        'Fire Power',
+        'EFFECTIVENESS% more Fire Power'
       ],
       'coldDmgMore': [
-        'Cold Damage'
+        'Cold Power',
+        'EFFECTIVENESS% more Cold Power'
       ],
       'elecDmgMore': [
-        'Lightning Damage'
+        'Lightning Power',
+        'EFFECTIVENESS% more Lightning Power'
       ],
       'acidDmgMore': [
-        'Acid Damage'
+        'Acid Power',
+        'EFFECTIVENESS% more Acid Power'
       ],
       'dmgMore': [
-        'Damage'
-      ],
-      'physHealMore': [
-        'Physical Healing'
-      ],
-      'fireHealMore': [
-        'Fire Healing'
-      ],
-      'coldHealMore': [
-        'Cold Healing'
-      ],
-      'elecHealMore': [
-        'Lightning Healing'
-      ],
-      'acidHealMore': [
-        'Acid Healing'
-      ],
-      'healMore': [
-        'Healing'
+        'Power',
+        'EFFECTIVENESS% more Power'
       ],
       'strDefMore': [
-        'Armor Rating'
+        'Armor Rating',
+        'EFFECTIVENESS% more Armor Rating'
       ],
       'dexDefMore': [
-        'Dodge Rating'
+        'Dodge Rating',
+        'EFFECTIVENESS% more Dodge Rating'
       ],
       'intDefMore': [
-        'Efficiency Rating'
+        'Recovery Rating',
+        'EFFECTIVENESS% more Recovery Rating'
       ],
       'defMore': [
-        'Defense'
+        'Defense',
+        'EFFECTIVENESS% more Defense'
       ],
       'physborn': [
-        'Physborn'
+        'Physborn',
+        'EFFECTIVENESS% of All Power Types converted to Physical Power',
+        'This Skill has Physical Power only'
       ],
       'physhazard': [
         'Physical Hazard',
@@ -175,7 +179,9 @@
         'EFFECTIVENESS% of Physical Power converted to Acid Power.'
       ],
       'fireborn': [
-        'Fireborn'
+        'Fireborn',
+        'EFFECTIVENESS% of All Power Types converted to Fire Power',
+        'This Skill has Fire Power only'
       ],
       'firehazard': [
         'Fire Hazard',
@@ -198,7 +204,9 @@
         'EFFECTIVENESS% of Fire Power converted to Acid Power.'
       ],
       'coldborn': [
-        'Coldborn'
+        'Coldborn',
+        'EFFECTIVENESS% of All Power Types converted to Cold Power',
+        'This Skill has Cold Power only'
       ],
       'coldhazard': [
         'Cold Hazard',
@@ -221,7 +229,9 @@
         'EFFECTIVENESS% of Cold Power converted to Acid Power.'
       ],
       'elecborn': [
-        'Elecborn'
+        'Elecborn',
+        'EFFECTIVENESS% of All Power Types converted to Lightning Power',
+        'This Skill has Lightning Power only'
       ],
       'elechazard': [
         'Lightning Hazard',
@@ -244,7 +254,9 @@
         'EFFECTIVENESS% of Lightning Power converted to Acid Power.'
       ],
       'acidborn': [
-        'Acidborn'
+        'Acidborn',
+        'EFFECTIVENESS% of All Power Types converted to Acid Power',
+        'This Skill has Acid Power only'
       ],
       'acidhazard': [
         'Acid Hazard',
@@ -267,16 +279,20 @@
         'EFFECTIVENESS% of Acid Power converted to Lightning Power.'
       ],
       'moveSpeed': [
-        'Movement Speed'
+        'Movement Speed',
+        'EFFECTIVENESS% increased Movement Speed'
       ],
       'climbSpeed': [
-        'Climbing Speed'
+        'Climbing Speed',
+        'EFFECTIVENESS% increased Climbing Speed'
       ],
       'threatful': [
-        'More Threat'
+        'More Threat',
+        'EFFECTIVENESS% increased Threat'
       ],
       'threatless': [
-        'Less Threat'
+        'Less Threat',
+        'EFFECTIVENESS% reduced Threat'
       ]
     }
 
@@ -382,6 +398,9 @@
       'acidDmgInc': [
         'Acid Damage'
       ],
+      'dmgInc': [
+        'All Damage Types'
+      ],
       'physHealInc': [
         'Physical Healing'
       ],
@@ -397,11 +416,8 @@
       'acidHealInc': [
         'Acid Healing'
       ],
-      'dmgInc': [
-        'All Damage Types'
-      ],
       'healInc': [
-        'Healing Power'
+        'All Healing Types'
       ],
       'gcdr': [
         'Action Speed'
@@ -425,7 +441,7 @@
         'Dodge Rating'
       ],
       'intDefInc': [
-        'Efficiency Rating'
+        'Recovery Rating'
       ],
       'hpInc': [
         'Maximum Life'
@@ -577,23 +593,25 @@
 
       return (
         <Stack m={2} gap={2}>
-          <Stack gap={1}>
-            {newPassives.map((passive) => (
-              <Alert key={passive} severity="error">
-                Unknown passive discovered: <code>{passive}</code>
-              </Alert>
-            ))}
-            {newSkills.map((skill) => (
-              <Alert key={skill} severity="error">
-                Unknown skill discovered: <code>{skill}</code>
-              </Alert>
-            ))}
-            {newStats.map((stat) => (
-              <Alert key={stat} severity="error">
-                Unknown stat discovered: <code>{stat}</code>
-              </Alert>
-            ))}
-          </Stack>
+          {newPassives.length + newSkills.length + newStats.length > 0 && (
+            <Stack gap={1}>
+              {newPassives.map((passive) => (
+                <Alert key={passive} severity="error">
+                  Unknown passive discovered: <code>{passive}</code>
+                </Alert>
+              ))}
+              {newSkills.map((skill) => (
+                <Alert key={skill} severity="error">
+                  Unknown skill discovered: <code>{skill}</code>
+                </Alert>
+              ))}
+              {newStats.map((stat) => (
+                <Alert key={stat} severity="error">
+                  Unknown stat discovered: <code>{stat}</code>
+                </Alert>
+              ))}
+            </Stack>
+          )}
           <TableContainer component={Paper}>
             <Table>
               <TableHead>
@@ -626,7 +644,7 @@
               </TableHead>
               <TableBody>
                 {filteredPassives.map((passive) => (
-                  <TableRow key={passive} className={passive[1].length > 0 ? "striped" : "striped error"}>
+                  <TableRow key={passive} className={passive[1].length > 0 ? 'striped' : 'striped error'}>
                     <ModCell md={passive[0]} lines={passive[1]}/>
                     {players.map((player) => (
                       <LearnedCell
@@ -654,7 +672,7 @@
               </TableHead>
               <TableBody>
                 {filteredSkills.map((skill) => (
-                  <TableRow key={skill} className={skill[1].length > 0 ? "striped" : "striped error"}>
+                  <TableRow key={skill} className={skill[1].length > 0 ? 'striped' : 'striped error'}>
                     <ModCell md={skill[0]} lines={skill[1]}/>
                     {players.map((player) => (
                       <LearnedCell
@@ -682,7 +700,7 @@
               </TableHead>
               <TableBody>
                 {filteredStats.map((stat) => (
-                  <TableRow key={stat} className={stat[1].length > 0 ? "striped" : "striped error"}>
+                  <TableRow key={stat} className={stat[1].length > 0 ? 'striped' : 'striped error'}>
                     <ModCell md={stat[0]} lines={stat[1]}/>
                     {players.map((player) => (
                       <LearnedCell
@@ -719,6 +737,11 @@
     root.render(<AppWrapper/>)
   </script>
   <style>
+    tr th:nth-of-type(n+2),
+    tr td:nth-of-type(n+2) {
+      text-align: center;
+    }
+
     tr.headline {
       background-color: gray;
     }
